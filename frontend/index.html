@@ -5,175 +5,275 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>ClawVault — Secure OpenClaw Skills</title>
 <style>
+:root{--bg:#080810;--card:#0f0f1a;--card2:#13131f;--border:#1e1e2e;--purple:#7c3aed;--purple2:#a855f7;--text:#e2e2f0;--muted:#4a4a6a;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--blue:#60a5fa}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0a;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
-a{color:inherit;text-decoration:none}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden}
 button{cursor:pointer;border:none;outline:none;font-family:inherit}
-nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);border-bottom:1px solid #1a1a1a;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;cursor:pointer}
-.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.nav-links{display:flex;gap:6px}
-.nav-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;background:transparent;color:#666;transition:all .15s}
-.nav-btn:hover,.nav-btn.active{background:#1a1a1a;color:#fff}
-.hero{padding:80px 24px 48px;text-align:center;max-width:680px;margin:0 auto}
-.badge{display:inline-flex;align-items:center;gap:6px;background:#1a0a2e;border:1px solid #3b1d6e;color:#a855f7;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:24px;letter-spacing:.05em}
-h1{font-size:clamp(30px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-.02em}
-h1 span{background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:#666;font-size:17px;line-height:1.6;margin-bottom:32px}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn{padding:12px 24px;border-radius:10px;font-size:15px;font-weight:600;transition:all .15s}
-.btn-purple{background:#7c3aed;color:#fff}.btn-purple:hover{background:#6d28d9;transform:translateY(-1px)}
-.btn-dark{background:#111;color:#e5e5e5;border:1px solid #222}.btn-dark:hover{background:#1a1a1a}
-.stats{display:flex;justify-content:center;gap:48px;padding:32px 24px;border-top:1px solid #111;border-bottom:1px solid #111;flex-wrap:wrap}
-.stat{text-align:center}.stat-num{font-size:28px;font-weight:800;color:#a855f7}
-.stat-label{font-size:11px;color:#444;margin-top:4px;font-weight:600;letter-spacing:.08em}
-.container{max-width:1100px;margin:0 auto;padding:0 24px}
-.filters{display:flex;gap:8px;padding:32px 0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.filter-btn{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;background:#111;color:#555;border:1px solid #1a1a1a;transition:all .15s;white-space:nowrap;cursor:pointer}
-.filter-btn:hover{color:#fff;border-color:#333}
-.filter-btn.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
-.toolbar{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+a{color:inherit;text-decoration:none}
+
+/* Animated bg */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(168,85,247,.08),transparent);pointer-events:none;z-index:0}
+
+/* Nav */
+nav{position:sticky;top:0;z-index:100;background:rgba(8,8,16,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(124,58,237,.15);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;cursor:pointer;letter-spacing:-.02em}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 20px rgba(124,58,237,.4)}
+.nav-right{display:flex;align-items:center;gap:6px}
+.nav-pill{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;background:transparent;color:var(--muted);transition:all .2s}
+.nav-pill:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.nav-pill.active{background:rgba(124,58,237,.2);color:var(--purple2);border:1px solid rgba(124,58,237,.3)}
+.nav-cta{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;background:var(--purple);color:#fff;transition:all .2s}
+.nav-cta:hover{background:#6d28d9;box-shadow:0 0 20px rgba(124,58,237,.4)}
+
+/* Hero */
+.hero{position:relative;z-index:1;padding:100px 24px 60px;text-align:center;max-width:720px;margin:0 auto}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:var(--purple2);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:28px;letter-spacing:.08em}
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--purple2);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-size:clamp(36px,6vw,60px);font-weight:900;line-height:1.05;margin-bottom:20px;letter-spacing:-.03em}
+h1 em{font-style:normal;background:linear-gradient(135deg,#7c3aed,#a855f7,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{color:var(--muted);font-size:18px;line-height:1.6;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px}
+.btn-hero-primary{display:flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--purple),#9333ea);color:#fff;box-shadow:0 4px 24px rgba(124,58,237,.4);transition:all .2s}
+.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,.5)}
+.btn-hero-secondary{display:flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:700;background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);transition:all .2s}
+.btn-hero-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(124,58,237,.3)}
+
+/* Stats bar */
+.stats-bar{display:flex;justify-content:center;gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(15,15,26,.6);flex-wrap:wrap}
+.stat-item{padding:28px 48px;text-align:center;border-right:1px solid var(--border);flex:1;min-width:140px}
+.stat-item:last-child{border-right:none}
+.stat-val{font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--purple),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.stat-key{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;letter-spacing:.1em}
+
+/* Features */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:1000px;margin:60px auto;padding:0 24px}
+.feat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:border-color .2s}
+.feat:hover{border-color:rgba(124,58,237,.3)}
+.feat-icon{font-size:28px;margin-bottom:14px}
+.feat-title{font-size:15px;font-weight:700;margin-bottom:8px}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* Filters + toolbar */
+.container{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:40px 0 0}
+.section-title{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.filters{display:flex;gap:8px;padding:20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.ftab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;background:var(--card);color:var(--muted);border:1px solid var(--border);transition:all .2s;white-space:nowrap;cursor:pointer}
+.ftab:hover{color:var(--text);border-color:rgba(124,58,237,.3)}
+.ftab.on{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(168,85,247,.2));color:var(--purple2);border-color:rgba(124,58,237,.5)}
+.toolbar{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
 .search-wrap{flex:1;min-width:180px;position:relative}
-.search-input{width:100%;background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:10px 16px 10px 40px;color:#fff;font-size:14px;outline:none;transition:border-color .15s}
-.search-input:focus{border-color:#7c3aed}
-.search-input::placeholder{color:#333}
-.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#333;font-size:14px;pointer-events:none}
-.sort-sel{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:10px 14px;color:#666;font-size:14px;outline:none;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding-bottom:80px}
-.card{background:#111;border:1px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;transition:all .2s}
-.card:hover{border-color:#2d1b4e;transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,.12)}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
-.card-icon{width:40px;height:40px;border-radius:10px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.card-tags{display:flex;gap:5px;flex-wrap:wrap}
-.tag{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.04em}
-.tag-green{background:#0d2d1a;color:#22c55e;border:1px solid #14532d}
-.tag-yellow{background:#2a1c00;color:#f59e0b;border:1px solid #451a03}
-.tag-red{background:#2d0d0d;color:#ef4444;border:1px solid #450a0a}
-.tag-purple{background:#1e1040;color:#a855f7;border:1px solid #3b1d6e}
-.tag-blue{background:#0a1f3d;color:#60a5fa;border:1px solid #1e3a5f}
-.card-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
-.card-desc{font-size:13px;color:#555;line-height:1.5;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.card-foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#333}
-.card-foot-stats{display:flex;gap:10px}
-.empty{text-align:center;padding:80px 24px;color:#333;font-size:15px}
-.empty-icon{font-size:48px;margin-bottom:16px}
+.search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:14px}
+.search-in{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px 11px 42px;color:var(--text);font-size:14px;outline:none;transition:all .2s}
+.search-in:focus{border-color:rgba(124,58,237,.5);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.search-in::placeholder{color:var(--muted)}
+.sort-sel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--muted);font-size:14px;outline:none;cursor:pointer;transition:all .2s}
+.sort-sel:focus{border-color:rgba(124,58,237,.5)}
+.sort-sel option{background:var(--card2)}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding-bottom:100px}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,.04),transparent);opacity:0;transition:opacity .25s}
+.card:hover{border-color:rgba(124,58,237,.35);transform:translateY(-3px);box-shadow:0 12px 40px rgba(124,58,237,.12)}
+.card:hover::before{opacity:1}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-icon-wrap{width:44px;height:44px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.pill{padding:3px 9px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.pill-green{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.pill-yellow{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.pill-red{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.pill-purple{background:rgba(168,85,247,.1);color:var(--purple2);border:1px solid rgba(168,85,247,.2)}
+.pill-blue{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+.card-name{font-size:16px;font-weight:800;color:#fff;margin-bottom:7px;letter-spacing:-.01em}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-footer{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);padding-top:14px;border-top:1px solid var(--border)}
+.card-author{display:flex;align-items:center;gap:6px}
+.card-author-dot{width:20px;height:20px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0}
+.card-nums{display:flex;gap:14px}
+.card-num{display:flex;align-items:center;gap:4px}
+
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Empty */
+.empty{text-align:center;padding:80px 24px;color:var(--muted);grid-column:1/-1}
+.empty-ico{font-size:48px;margin-bottom:16px;opacity:.5}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid rgba(124,58,237,.2);border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(124,58,237,.1)}
+.modal-top{padding:28px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.modal-title{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.modal-meta{font-size:13px;color:var(--muted);margin-top:4px}
+.modal-x{background:rgba(255,255,255,.06);color:var(--muted);width:34px;height:34px;border-radius:10px;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-x:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.modal-body{padding:28px}
+.modal-desc{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:24px}
+.info-grid{display:grid;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-k{color:var(--muted)}
+.info-v{color:var(--text);font-weight:600}
+.install-card{background:var(--bg);border:1px solid rgba(124,58,237,.2);border-radius:14px;padding:18px}
+.install-lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.1em;margin-bottom:10px}
+.install-row{display:flex;align-items:center;gap:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:12px 16px}
+.install-code{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;color:var(--purple2);flex:1;word-break:break-all}
+.copy-btn{background:var(--purple);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;flex-shrink:0;transition:all .15s}
+.copy-btn:hover{background:#6d28d9}
+.issues-wrap{margin-top:20px}
+.issues-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;margin-bottom:10px}
+.issue{display:flex;gap:10px;align-items:flex-start;padding:10px 0;font-size:13px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.04)}
+.sev{width:56px;flex-shrink:0;font-size:10px;font-weight:700;padding:3px 0;border-radius:6px;text-align:center}
+.sev-high{background:rgba(239,68,68,.1);color:#f87171}
+.sev-medium{background:rgba(245,158,11,.1);color:#fbbf24}
+.sev-low{background:rgba(34,197,94,.1);color:#4ade80}
+.scan-clean{text-align:center;padding:16px;color:#4ade80;font-size:13px;background:rgba(34,197,94,.05);border-radius:10px;border:1px solid rgba(34,197,94,.15);margin-top:16px}
+
 /* Pages */
 .page{display:none}.page.active{display:block}
-/* Form */
-.form-page{max-width:600px;margin:0 auto;padding:48px 24px 80px}
-.page-title{font-size:28px;font-weight:800;margin-bottom:8px}
-.page-sub{color:#555;font-size:15px;margin-bottom:32px}
-.form-group{margin-bottom:20px}
-.form-label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:8px;letter-spacing:.06em}
-.form-input{width:100%;background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:12px 16px;color:#fff;font-size:14px;outline:none;transition:border-color .15s;font-family:inherit}
-.form-input:focus{border-color:#7c3aed}
-.form-input::placeholder{color:#2a2a2a}
-textarea.form-input{resize:vertical;min-height:90px}
-select.form-input{cursor:pointer}
-.form-input option{background:#111}
-.submit-btn{width:100%;background:#7c3aed;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:700;transition:all .15s;border:none;cursor:pointer;font-family:inherit}
-.submit-btn:hover{background:#6d28d9}
-.submit-btn:disabled{opacity:.5;cursor:not-allowed}
-.alert{padding:14px 18px;border-radius:10px;font-size:14px;margin-bottom:20px;line-height:1.6}
-.alert-ok{background:#0d2d1a;border:1px solid #14532d;color:#4ade80}
-.alert-err{background:#2d0d0d;border:1px solid #450a0a;color:#f87171}
-.alert-info{background:#0a1f3d;border:1px solid #1e3a5f;color:#60a5fa}
-/* Modal */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
-.overlay.open{opacity:1;pointer-events:all}
-.modal{background:#111;border:1px solid #222;border-radius:20px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
-.modal-head{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.modal-name{font-size:20px;font-weight:700}
-.modal-close{background:#1a1a1a;color:#666;width:32px;height:32px;border-radius:8px;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.modal-close:hover{background:#222;color:#fff}
-.modal-body{padding:24px}
-.modal-desc{color:#666;font-size:14px;line-height:1.6;margin-bottom:20px}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:14px}
-.info-row:last-child{border-bottom:none}
-.info-key{color:#444}.info-val{color:#e5e5e5;font-weight:500}
-.install-box{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:16px;margin-top:20px}
-.install-lbl{font-size:11px;color:#444;font-weight:700;letter-spacing:.08em;margin-bottom:8px}
-.install-cmd{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;color:#a855f7;background:#110820;border:1px solid #2d1b4e;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;word-break:break-all}
-.copy-btn{background:#7c3aed;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;flex-shrink:0}
-.copy-btn:hover{background:#6d28d9}
-.issues{margin-top:20px}
-.issue{display:flex;gap:8px;align-items:flex-start;padding:8px 0;font-size:13px;color:#555;border-bottom:1px solid #151515}
-.sev{width:54px;flex-shrink:0;font-size:10px;font-weight:700;padding:2px 0;border-radius:4px;text-align:center}
-.sev-high{background:#2d0d0d;color:#ef4444}
-.sev-medium{background:#2a1c00;color:#f59e0b}
-.sev-low{background:#0d2d0d;color:#22c55e}
+
+/* Form page */
+.form-wrap{max-width:580px;margin:0 auto;padding:60px 24px 100px;position:relative;z-index:1}
+.form-title{font-size:32px;font-weight:900;letter-spacing:-.03em;margin-bottom:8px}
+.form-sub{color:var(--muted);font-size:15px;margin-bottom:36px}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px}
+.fg{margin-bottom:22px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.08em}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-size:14px;outline:none;transition:all .2s;font-family:inherit}
+.fi:focus{border-color:rgba(124,58,237,.5);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.fi::placeholder{color:rgba(74,74,106,.6)}
+textarea.fi{resize:vertical;min-height:90px}
+select.fi{cursor:pointer}
+select.fi option{background:var(--card)}
+.sub-btn{width:100%;background:linear-gradient(135deg,var(--purple),#9333ea);color:#fff;padding:15px;border-radius:12px;font-size:15px;font-weight:700;transition:all .2s;box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.sub-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(124,58,237,.45)}
+.sub-btn:disabled{opacity:.5;transform:none;cursor:not-allowed}
+.alert{padding:14px 18px;border-radius:12px;font-size:14px;margin-bottom:20px;line-height:1.6}
+.a-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+.a-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171}
+.a-info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:var(--blue)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--card2);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
 /* Admin */
-.admin-login{max-width:400px;margin:80px auto;padding:0 24px}
-.admin-wrap{max-width:900px;margin:0 auto;padding:32px 24px 80px}
-.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.admin-stats{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap}
-.mini-stat{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:14px 20px;text-align:center}
-.mini-num{font-size:22px;font-weight:800;color:#a855f7}
-.mini-label{font-size:11px;color:#444;font-weight:600;letter-spacing:.06em;margin-top:2px}
-.queue-card{background:#111;border:1px solid #1a1a1a;border-radius:14px;padding:20px;margin-bottom:14px}
-.queue-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.queue-name{font-size:16px;font-weight:700}
-.queue-actions{display:flex;gap:6px;flex-wrap:wrap}
-.qbtn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s;cursor:pointer;border:none}
-.qbtn-approve{background:#0d2d1a;color:#22c55e;border:1px solid #14532d}.qbtn-approve:hover{background:#14532d}
-.qbtn-reject{background:#2d0d0d;color:#ef4444;border:1px solid #450a0a}.qbtn-reject:hover{background:#450a0a}
-.qbtn-rescan{background:#0a1f3d;color:#60a5fa;border:1px solid #1e3a5f}.qbtn-rescan:hover{background:#1e3a5f}
-.qbtn-del{background:#1a1a1a;color:#444;border:1px solid #222}.qbtn-del:hover{color:#ef4444}
-.queue-meta{font-size:13px;color:#444;line-height:1.8}
-.queue-meta a{color:#a855f7}
-.sbadge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
-.s-scanning{background:#0a1f3d;color:#60a5fa}
-.s-pending{background:#2a1c00;color:#f59e0b}
-.s-failed{background:#2d0d0d;color:#ef4444}
-.s-verified{background:#0d2d1a;color:#22c55e}
-.s-review{background:#1e1040;color:#a855f7}
-@media(max-width:600px){.stats{gap:20px}.hero{padding:48px 16px 32px}.grid{grid-template-columns:1fr}}
+.admin-login-wrap{max-width:400px;margin:80px auto;padding:0 24px}
+.admin-wrap{max-width:960px;margin:0 auto;padding:40px 24px 100px;position:relative;z-index:1}
+.admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.admin-stats-row{display:flex;gap:14px;margin-bottom:28px;flex-wrap:wrap}
+.mini-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 22px;text-align:center;flex:1;min-width:100px}
+.ms-num{font-size:26px;font-weight:900;background:linear-gradient(135deg,var(--purple),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ms-lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-top:3px}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;transition:border-color .2s}
+.q-card:hover{border-color:rgba(124,58,237,.2)}
+.q-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.q-name{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.q-actions{display:flex;gap:7px;flex-wrap:wrap}
+.qb{padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;transition:all .15s;cursor:pointer;border:none;font-family:inherit}
+.qb-approve{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}.qb-approve:hover{background:rgba(34,197,94,.2)}
+.qb-reject{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}.qb-reject:hover{background:rgba(239,68,68,.2)}
+.qb-rescan{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.2)}.qb-rescan:hover{background:rgba(96,165,250,.2)}
+.qb-del{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}.qb-del:hover{color:#f87171}
+.q-meta{font-size:13px;color:var(--muted);line-height:1.9}
+.q-meta a{color:var(--purple2);transition:opacity .15s}.q-meta a:hover{opacity:.7}
+.sbadge{display:inline-block;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700;margin-left:8px}
+.s-scanning{background:rgba(96,165,250,.1);color:var(--blue)}
+.s-pending{background:rgba(245,158,11,.1);color:#fbbf24}
+.s-failed{background:rgba(239,68,68,.1);color:#f87171}
+.s-verified{background:rgba(34,197,94,.1);color:#4ade80}
+.s-review{background:rgba(168,85,247,.1);color:var(--purple2)}
+
+@media(max-width:640px){.stats-bar{gap:0}.stat-item{padding:20px 24px;border-right:none;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}.hero{padding:60px 16px 40px}.grid{grid-template-columns:1fr}.nav-cta{display:none}}
 </style>
 </head>
 <body>
 
+<div class="toast" id="toast"></div>
+
 <nav>
   <div class="logo" onclick="showPage('skills')">
-    <div class="logo-icon">🔒</div>ClawVault
+    <div class="logo-mark">🔒</div>ClawVault
   </div>
-  <div class="nav-links">
-    <button class="nav-btn active" id="nb-skills" onclick="showPage('skills')">Skills</button>
-    <button class="nav-btn" id="nb-submit" onclick="showPage('submit')">Submit</button>
-    <button class="nav-btn" id="nb-admin" onclick="showPage('admin')">Admin</button>
+  <div class="nav-right">
+    <button class="nav-pill active" id="nb-skills" onclick="showPage('skills')">Browse</button>
+    <button class="nav-pill" id="nb-submit" onclick="showPage('submit')">Submit</button>
+    <button class="nav-pill" id="nb-admin" onclick="showPage('admin')">Admin</button>
+    <button class="nav-cta" onclick="showPage('submit')">+ Submit Skill</button>
   </div>
 </nav>
 
-<!-- ── Skills ── -->
+<!-- SKILLS PAGE -->
 <div id="page-skills" class="page active">
   <div class="hero">
-    <div class="badge">🛡️ CLAWHUB ALTERNATIVE · VERIFIED SAFE</div>
-    <h1>The <span>secure</span> skill store<br>for OpenClaw</h1>
-    <p>Every skill is automatically scanned for malware before going live. No more supply-chain attacks.</p>
-    <div class="hero-btns">
-      <button class="btn btn-purple" onclick="showPage('submit')">Submit a Skill</button>
-      <a class="btn btn-dark" href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw Docs ↗</a>
+    <div class="hero-eyebrow">🛡️ SAFE CLAWHUB ALTERNATIVE</div>
+    <h1>The <em>secure</em> skill<br>store for OpenClaw</h1>
+    <p class="hero-sub">Every skill is automatically scanned for malware before going live. Community-verified. Zero supply-chain incidents.</p>
+    <div class="hero-actions">
+      <button class="btn-hero-primary" onclick="document.querySelector('.filters').scrollIntoView({behavior:'smooth'})">
+        🔍 Browse Skills
+      </button>
+      <a class="btn-hero-secondary" href="https://github.com/openclaw/openclaw" target="_blank">
+        OpenClaw Docs ↗
+      </a>
     </div>
   </div>
-  <div class="stats">
-    <div class="stat"><div class="stat-num" id="s-verified">—</div><div class="stat-label">VERIFIED SKILLS</div></div>
-    <div class="stat"><div class="stat-num" id="s-installs">—</div><div class="stat-label">TOTAL INSTALLS</div></div>
-    <div class="stat"><div class="stat-num" id="s-pending">—</div><div class="stat-label">PENDING REVIEW</div></div>
-    <div class="stat"><div class="stat-num">0</div><div class="stat-label">MALWARE INCIDENTS</div></div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-val" id="s-verified">—</div><div class="stat-key">VERIFIED SKILLS</div></div>
+    <div class="stat-item"><div class="stat-val" id="s-installs">—</div><div class="stat-key">TOTAL INSTALLS</div></div>
+    <div class="stat-item"><div class="stat-val" id="s-pending">—</div><div class="stat-key">PENDING REVIEW</div></div>
+    <div class="stat-item"><div class="stat-val">0</div><div class="stat-key">MALWARE INCIDENTS</div></div>
   </div>
+
+  <div style="max-width:1000px;margin:0 auto;padding:60px 24px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;position:relative;z-index:1">
+    <div class="feat">
+      <div style="font-size:28px;margin-bottom:12px">🔬</div>
+      <div class="feat-title">Automatic Security Scan</div>
+      <div class="feat-desc">Every submission is scanned for eval(), exec(), obfuscated payloads, hardcoded secrets, and more.</div>
+    </div>
+    <div class="feat">
+      <div style="font-size:28px;margin-bottom:12px">⚡</div>
+      <div class="feat-title">Instant Approval</div>
+      <div class="feat-desc">Skills scoring ≥ 80/100 are auto-approved in seconds. No waiting for manual review.</div>
+    </div>
+    <div class="feat">
+      <div style="font-size:28px;margin-bottom:12px">🏷️</div>
+      <div class="feat-title">GitHub Verified</div>
+      <div class="feat-desc">Every skill is linked to a real public GitHub repo. No anonymous uploads.</div>
+    </div>
+    <div class="feat">
+      <div style="font-size:28px;margin-bottom:12px">🛡️</div>
+      <div class="feat-title">ClawHub Replacement</div>
+      <div class="feat-desc">Built after the ClawHub supply-chain attack compromised 341 skills. Safety first.</div>
+    </div>
+  </div>
+
   <div class="container">
+    <div class="section-header">
+      <div class="section-title">All Skills</div>
+    </div>
     <div class="filters">
-      <button class="filter-btn active" onclick="setCategory('all',this)">All</button>
-      <button class="filter-btn" onclick="setCategory('productivity',this)">⚡ Productivity</button>
-      <button class="filter-btn" onclick="setCategory('ai',this)">🤖 AI</button>
-      <button class="filter-btn" onclick="setCategory('smart-home',this)">🏠 Smart Home</button>
-      <button class="filter-btn" onclick="setCategory('finance',this)">💰 Finance</button>
-      <button class="filter-btn" onclick="setCategory('developer',this)">👨‍💻 Developer</button>
-      <button class="filter-btn" onclick="setCategory('general',this)">🎯 General</button>
+      <button class="ftab on" onclick="setCategory('all',this)">✦ All</button>
+      <button class="ftab" onclick="setCategory('productivity',this)">⚡ Productivity</button>
+      <button class="ftab" onclick="setCategory('ai',this)">🤖 AI</button>
+      <button class="ftab" onclick="setCategory('smart-home',this)">🏠 Smart Home</button>
+      <button class="ftab" onclick="setCategory('finance',this)">💰 Finance</button>
+      <button class="ftab" onclick="setCategory('developer',this)">👨‍💻 Developer</button>
+      <button class="ftab" onclick="setCategory('general',this)">🎯 General</button>
     </div>
     <div class="toolbar">
       <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="search" type="text" placeholder="Search skills…" oninput="render()"/>
+        <span class="search-ico">🔍</span>
+        <input class="search-in" id="search" type="text" placeholder="Search skills, authors…" oninput="render()"/>
       </div>
       <select class="sort-sel" onchange="currentSort=this.value;render()">
         <option value="installs">Most Installed</option>
@@ -182,80 +282,90 @@ select.form-input{cursor:pointer}
         <option value="newest">Newest</option>
       </select>
     </div>
-    <div class="grid" id="grid"><div class="empty"><div class="empty-icon">⏳</div>Loading…</div></div>
+    <div class="grid" id="grid">
+      ${Array(6).fill('<div class="card"><div class="skeleton" style="height:44px;width:44px;border-radius:12px;margin-bottom:14px"></div><div class="skeleton" style="height:18px;width:60%;margin-bottom:10px"></div><div class="skeleton" style="height:13px;width:90%;margin-bottom:6px"></div><div class="skeleton" style="height:13px;width:75%"></div></div>').join('')}
+    </div>
   </div>
 </div>
 
-<!-- ── Submit ── -->
+<!-- SUBMIT PAGE -->
 <div id="page-submit" class="page">
-  <div class="form-page">
-    <div class="page-title">Submit a Skill</div>
-    <div class="page-sub">Your skill will be scanned automatically. Score ≥ 80 = instant approval.</div>
+  <div class="form-wrap">
+    <div class="form-title">Submit a Skill</div>
+    <div class="form-sub">Scored ≥ 80? Auto-approved instantly. Lower score goes to manual review.</div>
     <div id="sub-alert"></div>
-    <form onsubmit="doSubmit(event)">
-      <div class="form-group"><label class="form-label">SKILL NAME</label>
-        <input class="form-input" id="f-name" placeholder="my-cool-skill" required/></div>
-      <div class="form-group"><label class="form-label">DESCRIPTION</label>
-        <textarea class="form-input" id="f-desc" placeholder="What does your skill do?" required></textarea></div>
-      <div class="form-group"><label class="form-label">GITHUB URL</label>
-        <input class="form-input" id="f-url" type="url" placeholder="https://github.com/you/skill" required/></div>
-      <div class="form-group"><label class="form-label">YOUR GITHUB USERNAME</label>
-        <input class="form-input" id="f-author" placeholder="github-username" required/></div>
-      <div class="form-group"><label class="form-label">CATEGORY</label>
-        <select class="form-input" id="f-cat">
-          <option value="productivity">Productivity</option>
-          <option value="ai">AI</option>
-          <option value="smart-home">Smart Home</option>
-          <option value="finance">Finance</option>
-          <option value="developer">Developer</option>
-          <option value="general">General</option>
-        </select></div>
-      <div class="form-group"><label class="form-label">VERSION</label>
-        <input class="form-input" id="f-ver" value="1.0.0"/></div>
-      <button class="submit-btn" id="sub-btn" type="submit">🚀 Submit Skill</button>
-    </form>
+    <div class="form-card">
+      <form onsubmit="doSubmit(event)">
+        <div class="fg"><label class="fl">SKILL NAME</label>
+          <input class="fi" id="f-name" placeholder="my-awesome-skill" required/></div>
+        <div class="fg"><label class="fl">DESCRIPTION</label>
+          <textarea class="fi" id="f-desc" placeholder="What does your skill do?" required></textarea></div>
+        <div class="fg"><label class="fl">GITHUB URL</label>
+          <input class="fi" id="f-url" type="url" placeholder="https://github.com/you/your-skill" required/></div>
+        <div class="fg"><label class="fl">YOUR GITHUB USERNAME</label>
+          <input class="fi" id="f-author" placeholder="github-username" required/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="fg"><label class="fl">CATEGORY</label>
+            <select class="fi" id="f-cat">
+              <option value="productivity">Productivity</option>
+              <option value="ai">AI</option>
+              <option value="smart-home">Smart Home</option>
+              <option value="finance">Finance</option>
+              <option value="developer">Developer</option>
+              <option value="general">General</option>
+            </select></div>
+          <div class="fg"><label class="fl">VERSION</label>
+            <input class="fi" id="f-ver" value="1.0.0"/></div>
+        </div>
+        <button class="sub-btn" id="sub-btn" type="submit">🚀 Submit for Review</button>
+      </form>
+    </div>
   </div>
 </div>
 
-<!-- ── Admin ── -->
+<!-- ADMIN PAGE -->
 <div id="page-admin" class="page">
-  <div id="a-login" class="admin-login">
-    <div class="page-title">Admin Panel</div>
-    <div class="page-sub">Enter admin token to manage the review queue.</div>
-    <div class="form-group"><label class="form-label">ADMIN TOKEN</label>
-      <input class="form-input" id="a-token" type="password" placeholder="clawvault-admin-…"/></div>
-    <button class="submit-btn" onclick="adminLogin()">Login →</button>
+  <div id="a-login" class="admin-login-wrap">
+    <div class="form-title" style="margin-bottom:8px">Admin Panel</div>
+    <div class="form-sub">Enter admin token to manage the review queue.</div>
+    <div class="form-card">
+      <div class="fg"><label class="fl">ADMIN TOKEN</label>
+        <input class="fi" id="a-tok" type="password" placeholder="clawvault-admin-…"/></div>
+      <button class="sub-btn" onclick="adminLogin()">Login →</button>
+    </div>
   </div>
   <div id="a-panel" class="admin-wrap" style="display:none">
-    <div class="admin-header">
-      <div class="page-title" style="margin:0">Review Queue</div>
+    <div class="admin-head">
+      <div class="form-title" style="margin:0">Review Queue</div>
       <div style="display:flex;gap:8px">
-        <button class="qbtn qbtn-rescan" onclick="loadQueue()">↻ Refresh</button>
-        <button class="qbtn qbtn-del" onclick="adminLogout()">Logout</button>
+        <button class="qb qb-rescan" onclick="loadQueue()">↻ Refresh</button>
+        <button class="qb qb-del" onclick="adminLogout()">Logout</button>
       </div>
     </div>
-    <div class="admin-stats" id="a-stats"></div>
-    <div id="queue"></div>
+    <div class="admin-stats-row" id="a-stats"></div>
+    <div id="queue"><div class="empty"><div class="empty-ico">✅</div>Queue is empty</div></div>
   </div>
 </div>
 
-<!-- ── Modal ── -->
-<div class="overlay" id="overlay" onclick="closeModal(event)">
-  <div class="modal">
-    <div class="modal-head">
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-top">
       <div>
-        <div class="modal-name" id="m-name"></div>
-        <div style="font-size:13px;color:#444;margin-top:3px" id="m-sub"></div>
+        <div class="modal-title" id="m-name"></div>
+        <div class="modal-meta" id="m-meta"></div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-x" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
       <p class="modal-desc" id="m-desc"></p>
-      <div id="m-info"></div>
-      <div class="install-box">
-        <div class="install-lbl">INSTALL</div>
-        <div class="install-cmd"><code id="m-cmd"></code>
-          <button class="copy-btn" onclick="doCopy()">Copy</button></div>
+      <div class="info-grid" id="m-info"></div>
+      <div class="install-card">
+        <div class="install-lbl">INSTALL COMMAND</div>
+        <div class="install-row">
+          <code class="install-code" id="m-cmd"></code>
+          <button class="copy-btn" onclick="doCopy()">Copy</button>
+        </div>
       </div>
       <div id="m-issues"></div>
     </div>
@@ -267,125 +377,144 @@ const API='';
 const ICONS={productivity:'⚡',ai:'🤖','smart-home':'🏠',finance:'💰',developer:'👨‍💻',general:'🎯'};
 let skills=[],cat='all',currentSort='installs',adminTok=localStorage.getItem('cv_tok')||'';
 
-// Pages
+function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.style.borderColor=ok?'rgba(34,197,94,.3)':'rgba(239,68,68,.3)';t.style.color=ok?'#4ade80':'#f87171';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
 function showPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-pill').forEach(b=>b.classList.remove('active'));
   document.getElementById('nb-'+p)?.classList.add('active');
   if(p==='skills')loadSkills();
   if(p==='admin')initAdmin();
 }
 
-// Skills
+function animateCount(el,target){
+  let n=0,step=Math.max(1,Math.floor(target/40));
+  const t=setInterval(()=>{n=Math.min(n+step,target);el.textContent=n.toLocaleString();if(n>=target)clearInterval(t);},30);
+}
+
 async function loadSkills(){
   try{
-    const [s,st]=await Promise.all([
+    const[s,st]=await Promise.all([
       fetch(API+'/api/skills').then(r=>r.json()),
       fetch(API+'/api/stats').then(r=>r.json())
     ]);
     skills=s;
-    document.getElementById('s-verified').textContent=st.verified_skills?.toLocaleString()||'0';
-    document.getElementById('s-installs').textContent=st.total_installs?.toLocaleString()||'0';
-    document.getElementById('s-pending').textContent=st.pending_review?.toLocaleString()||'0';
+    animateCount(document.getElementById('s-verified'),st.verified_skills||0);
+    animateCount(document.getElementById('s-installs'),st.total_installs||0);
+    animateCount(document.getElementById('s-pending'),st.pending_review||0);
     render();
   }catch(e){
-    document.getElementById('grid').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div>Backend not reachable</div>';
+    document.getElementById('grid').innerHTML='<div class="empty"><div class="empty-ico">⚠️</div>Could not reach backend</div>';
   }
 }
-function setCategory(c,btn){cat=c;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+
+function setCategory(c,btn){
+  cat=c;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
 function render(){
   const q=document.getElementById('search').value.toLowerCase();
   let list=skills.filter(s=>{
     if(cat!=='all'&&s.category!==cat)return false;
-    if(q&&!s.name.includes(q)&&!s.description?.toLowerCase().includes(q)&&!s.author?.includes(q))return false;
+    if(q&&!s.name.includes(q)&&!(s.description||'').toLowerCase().includes(q)&&!(s.author||'').includes(q))return false;
     return true;
   });
   const col={installs:'installs',stars:'stars',score:'score',newest:'created_at'}[currentSort]||'installs';
   list.sort((a,b)=>(b.featured||0)-(a.featured||0)||(b[col]||0)-(a[col]||0));
-  if(!list.length){document.getElementById('grid').innerHTML='<div class="empty"><div class="empty-icon">🔍</div>No skills found</div>';return;}
+  if(!list.length){
+    document.getElementById('grid').innerHTML='<div class="empty"><div class="empty-ico">🔍</div>No skills match your search</div>';
+    return;
+  }
+  const sc2cls=sc=>sc>=90?'pill-green':sc>=70?'pill-yellow':'pill-red';
   document.getElementById('grid').innerHTML=list.map(s=>{
-    const sc=s.score||0,cls=sc>=90?'tag-green':sc>=70?'tag-yellow':'tag-red';
+    const sc=s.score||0;
+    const init=(s.author||'?')[0].toUpperCase();
     return`<div class="card" onclick="openSkill('${s.id}')">
-      <div class="card-top">
-        <div class="card-icon">${ICONS[s.category]||'🎯'}</div>
-        <div class="card-tags">
-          ${s.featured?'<span class="tag tag-purple">⭐ Featured</span>':''}
-          ${s.verified?'<span class="tag tag-blue">✓ Verified</span>':''}
-          <span class="tag ${cls}">${sc}/100</span>
+      <div class="card-header">
+        <div class="card-icon-wrap">${ICONS[s.category]||'🎯'}</div>
+        <div class="card-badges">
+          ${s.featured?'<span class="pill pill-purple">⭐ Featured</span>':''}
+          ${s.verified?'<span class="pill pill-blue">✓ Verified</span>':''}
+          <span class="pill ${sc2cls(sc)}">${sc}/100</span>
         </div>
       </div>
       <div class="card-name">${s.name}</div>
       <div class="card-desc">${s.description||''}</div>
-      <div class="card-foot">
-        <span>👤 ${s.author}</span>
-        <div class="card-foot-stats"><span>⭐${s.stars||0}</span><span>📦${(s.installs||0).toLocaleString()}</span></div>
+      <div class="card-footer">
+        <div class="card-author">
+          <div class="card-author-dot">${init}</div>
+          <span>${s.author}</span>
+        </div>
+        <div class="card-nums">
+          <span class="card-num">⭐ ${s.stars||0}</span>
+          <span class="card-num">📦 ${(s.installs||0).toLocaleString()}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
-// Modal
 async function openSkill(id){
   try{
     const s=await fetch(API+'/api/skills/'+id).then(r=>r.json());
     document.getElementById('m-name').textContent=s.name;
-    document.getElementById('m-sub').textContent=`by ${s.author} · v${s.version||'1.0.0'} · ${s.category}`;
+    document.getElementById('m-meta').textContent=`by ${s.author} · v${s.version||'1.0.0'} · ${s.category}`;
     document.getElementById('m-desc').textContent=s.description||'';
     document.getElementById('m-cmd').textContent=`openclaw skill install @clawvault/${s.name}`;
     document.getElementById('m-info').innerHTML=`
-      <div class="info-row"><span class="info-key">Security Score</span><span class="info-val">${s.score||0}/100</span></div>
-      <div class="info-row"><span class="info-key">Status</span><span class="info-val">${s.status}</span></div>
-      <div class="info-row"><span class="info-key">Installs</span><span class="info-val">${(s.installs||0).toLocaleString()}</span></div>
-      <div class="info-row"><span class="info-key">GitHub</span><a class="info-val" href="${s.github_url}" target="_blank" style="color:#a855f7">${s.github_url}</a></div>`;
+      <div class="info-row"><span class="info-k">Security Score</span><span class="info-v">${s.score||0}/100</span></div>
+      <div class="info-row"><span class="info-k">Status</span><span class="info-v">${s.status}</span></div>
+      <div class="info-row"><span class="info-k">Installs</span><span class="info-v">${(s.installs||0).toLocaleString()}</span></div>
+      <div class="info-row"><span class="info-k">GitHub</span><a class="info-v" href="${s.github_url}" target="_blank" style="color:var(--purple2)">${s.github_url}</a></div>`;
     let issues=[];try{issues=JSON.parse(s.scan_issues||'[]')}catch(e){}
     document.getElementById('m-issues').innerHTML=issues.length
-      ?`<div style="font-size:11px;font-weight:700;color:#333;margin-top:20px;letter-spacing:.06em">SCAN DETAILS</div><div style="margin-top:8px">${issues.map(i=>`<div class="issue"><span class="sev sev-${i.severity||'low'}">${(i.severity||'low').toUpperCase()}</span><span>${i.message}</span></div>`).join('')}</div>`
-      :`<div style="text-align:center;padding:16px;color:#22c55e;font-size:13px">✅ No security issues found</div>`;
+      ?`<div class="issues-wrap"><div class="issues-title">SCAN DETAILS</div>${issues.map(i=>`<div class="issue"><span class="sev sev-${i.severity||'low'}">${(i.severity||'').toUpperCase()}</span><span>${i.message}</span></div>`).join('')}</div>`
+      :`<div class="scan-clean">✅ No security issues detected</div>`;
     document.getElementById('overlay').classList.add('open');
-  }catch(e){alert('Could not load skill');}
+  }catch(e){toast('Could not load skill',false);}
 }
-function closeModal(e){if(!e||e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
-function doCopy(){navigator.clipboard.writeText(document.getElementById('m-cmd').textContent);const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000);}
+function maybeClose(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function doCopy(){navigator.clipboard.writeText(document.getElementById('m-cmd').textContent);toast('Copied to clipboard!');}
 
-// Submit
 async function doSubmit(e){
   e.preventDefault();
   const btn=document.getElementById('sub-btn'),al=document.getElementById('sub-alert');
   btn.disabled=true;btn.textContent='⏳ Submitting…';al.innerHTML='';
   try{
     const res=await fetch(API+'/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      name:document.getElementById('f-name').value,
-      description:document.getElementById('f-desc').value,
-      github_url:document.getElementById('f-url').value,
-      author:document.getElementById('f-author').value,
-      category:document.getElementById('f-cat').value,
-      version:document.getElementById('f-ver').value||'1.0.0'
+      name:document.getElementById('f-name').value,description:document.getElementById('f-desc').value,
+      github_url:document.getElementById('f-url').value,author:document.getElementById('f-author').value,
+      category:document.getElementById('f-cat').value,version:document.getElementById('f-ver').value||'1.0.0'
     })});
     const d=await res.json();
     if(!res.ok)throw new Error(d.detail||'Submission failed');
-    al.innerHTML=`<div class="alert alert-ok">✅ ${d.message}</div>`;
-    pollStatus(d.skill_id,al);
+    al.innerHTML=`<div class="alert a-ok">✅ ${d.message}</div>`;
     e.target.reset();
-  }catch(err){al.innerHTML=`<div class="alert alert-err">❌ ${err.message}</div>`;}
-  btn.disabled=false;btn.textContent='🚀 Submit Skill';
+    pollStatus(d.skill_id,al);
+  }catch(err){al.innerHTML=`<div class="alert a-err">❌ ${err.message}</div>`;}
+  btn.disabled=false;btn.textContent='🚀 Submit for Review';
 }
 async function pollStatus(id,el){
   for(let i=0;i<30;i++){
     await new Promise(r=>setTimeout(r,3000));
     try{
       const s=await fetch(API+'/api/status/'+id).then(r=>r.json());
-      if(s.status==='verified'){el.innerHTML=`<div class="alert alert-ok">🎉 Auto-approved! Score: ${s.score}/100 — your skill is live.</div>`;return;}
-      if(s.status==='failed'){el.innerHTML=`<div class="alert alert-err">❌ Scan failed (${s.score}/100). Fix issues and resubmit.</div>`;return;}
-      if(s.status==='review'){el.innerHTML=`<div class="alert alert-info">👀 Score ${s.score}/100 — sent to manual review.</div>`;return;}
+      if(s.status==='verified'){el.innerHTML=`<div class="alert a-ok">🎉 Auto-approved! Score: ${s.score}/100 — your skill is live.</div>`;return;}
+      if(s.status==='failed'){el.innerHTML=`<div class="alert a-err">❌ Scan failed (${s.score}/100). Fix the issues and resubmit.</div>`;return;}
+      if(s.status==='review'){el.innerHTML=`<div class="alert a-info">👀 Score: ${s.score}/100 — sent to manual review team.</div>`;return;}
     }catch(e){}
   }
 }
 
-// Admin
 function initAdmin(){if(adminTok){document.getElementById('a-login').style.display='none';document.getElementById('a-panel').style.display='block';loadQueue();}}
-function adminLogin(){adminTok=document.getElementById('a-token').value.trim();localStorage.setItem('cv_tok',adminTok);initAdmin();}
+function adminLogin(){adminTok=document.getElementById('a-tok').value.trim();localStorage.setItem('cv_tok',adminTok);initAdmin();}
 function adminLogout(){adminTok='';localStorage.removeItem('cv_tok');document.getElementById('a-login').style.display='';document.getElementById('a-panel').style.display='none';}
+
 async function loadQueue(){
   try{
     const[q,st]=await Promise.all([
@@ -393,40 +522,54 @@ async function loadQueue(){
       fetch(API+'/api/stats').then(r=>r.json())
     ]);
     document.getElementById('a-stats').innerHTML=`
-      <div class="mini-stat"><div class="mini-num">${st.verified_skills}</div><div class="mini-label">VERIFIED</div></div>
-      <div class="mini-stat"><div class="mini-num">${st.pending_review}</div><div class="mini-label">PENDING</div></div>
-      <div class="mini-stat"><div class="mini-num">${st.failed_scans||0}</div><div class="mini-label">FAILED</div></div>`;
-    if(!q.length){document.getElementById('queue').innerHTML='<div class="empty"><div class="empty-icon">✅</div>Queue empty</div>';return;}
+      <div class="mini-stat"><div class="ms-num">${st.verified_skills}</div><div class="ms-lbl">VERIFIED</div></div>
+      <div class="mini-stat"><div class="ms-num">${st.pending_review}</div><div class="ms-lbl">PENDING</div></div>
+      <div class="mini-stat"><div class="ms-num">${st.failed_scans||0}</div><div class="ms-lbl">FAILED</div></div>
+      <div class="mini-stat"><div class="ms-num">${st.total_installs?.toLocaleString()||0}</div><div class="ms-lbl">INSTALLS</div></div>`;
+    if(!q.length){document.getElementById('queue').innerHTML='<div class="empty"><div class="empty-ico">✅</div>Queue empty — all caught up</div>';return;}
     document.getElementById('queue').innerHTML=q.map(s=>{
       let issues=[];try{issues=JSON.parse(s.scan_issues||'[]')}catch(e){}
-      return`<div class="queue-card" id="qi-${s.id}">
-        <div class="queue-top">
-          <div><span class="queue-name">${s.name}</span> <span class="sbadge s-${s.status}">${s.status}</span>
-            <div style="font-size:12px;color:#444;margin-top:3px">by ${s.author} · Score: ${s.score||'—'}/100</div></div>
-          <div class="queue-actions">
-            <button class="qbtn qbtn-approve" onclick="qa('approve','${s.id}')">✓ Approve</button>
-            <button class="qbtn qbtn-reject" onclick="qReject('${s.id}')">✗ Reject</button>
-            <button class="qbtn qbtn-rescan" onclick="qa('rescan','${s.id}')">↻ Rescan</button>
-            <button class="qbtn qbtn-del" onclick="qa('delete','${s.id}')">🗑</button>
+      return`<div class="q-card" id="qi-${s.id}">
+        <div class="q-top">
+          <div>
+            <span class="q-name">${s.name}</span><span class="sbadge s-${s.status}">${s.status}</span>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">by ${s.author} · Score: ${s.score||'—'}/100</div>
+          </div>
+          <div class="q-actions">
+            <button class="qb qb-approve" onclick="qa('approve','${s.id}')">✓ Approve</button>
+            <button class="qb qb-reject" onclick="qReject('${s.id}')">✗ Reject</button>
+            <button class="qb qb-rescan" onclick="qa('rescan','${s.id}')">↻ Rescan</button>
+            <button class="qb qb-del" onclick="qa('delete','${s.id}')">🗑</button>
           </div>
         </div>
-        <div class="queue-meta"><a href="${s.github_url}" target="_blank">${s.github_url}</a><br>${s.description||''}
-          ${issues.length?`<div style="margin-top:8px">${issues.slice(0,4).map(i=>`<div class="issue"><span class="sev sev-${i.severity}">${(i.severity||'').toUpperCase()}</span><span>${i.message}</span></div>`).join('')}</div>`:''}
+        <div class="q-meta">
+          <a href="${s.github_url}" target="_blank">${s.github_url}</a><br>${s.description||''}
+          ${issues.length?`<div style="margin-top:10px">${issues.slice(0,4).map(i=>`<div class="issue"><span class="sev sev-${i.severity}">${(i.severity||'').toUpperCase()}</span><span>${i.message}</span></div>`).join('')}</div>`:''}
         </div>
       </div>`;
     }).join('');
-  }catch(e){document.getElementById('queue').innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
+  }catch(e){document.getElementById('queue').innerHTML=`<div class="alert a-err">Error: ${e.message}</div>`;}
 }
+
 async function qa(action,id){
-  await fetch(API+`/api/admin/${action}/${id}`,{method:action==='delete'?'DELETE':'POST',headers:{Authorization:`Bearer ${adminTok}`,'Content-Type':'application/json'},body:action==='delete'?undefined:'{}'});
-  document.getElementById('qi-'+id)?.remove();loadQueue();
+  try{
+    const method=action==='delete'?'DELETE':'POST';
+    const res=await fetch(API+`/api/admin/${action}/${id}`,{method,headers:{Authorization:`Bearer ${adminTok}`,'Content-Type':'application/json'},body:action==='delete'?undefined:'{}'});
+    if(!res.ok)throw new Error(await res.text());
+    document.getElementById('qi-'+id)?.remove();
+    toast(action==='approve'?'Skill approved!':action==='delete'?'Skill deleted':'Rescan started');
+    loadQueue();
+  }catch(e){toast('Error: '+e.message,false);}
 }
 async function qReject(id){
   const r=prompt('Reject reason:');if(r===null)return;
   await fetch(API+`/api/admin/reject/${id}`,{method:'POST',headers:{Authorization:`Bearer ${adminTok}`,'Content-Type':'application/json'},body:JSON.stringify({reason:r})});
-  document.getElementById('qi-'+id)?.remove();loadQueue();
+  document.getElementById('qi-'+id)?.remove();
+  toast('Skill rejected');
+  loadQueue();
 }
 
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 loadSkills();
 </script>
 </body>
