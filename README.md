@@ -36,12 +36,24 @@ cd backend && python3 main.py
 python3 scanner/scanner.py ./your-skill
 ```
 
-## Deploy to Vercel
+## Deploy to Railway
+
+1. Create a free account at [railway.app](https://railway.app)
+2. Click **New Project → Deploy from GitHub repo**
+3. Select this repository
+4. Add environment variable: `ADMIN_TOKEN=your-secret-token`
+5. Railway detects `railway.json` and `Procfile` automatically — deploy starts
 
 ```bash
-npm i -g vercel
-vercel --prod
+# Or deploy via CLI
+npm i -g @railway/cli
+railway login
+railway init
+railway up
 ```
+
+**Environment Variables:**
+- `ADMIN_TOKEN` — Admin panel password (printed to logs if not set, auto-generated)
 
 ## Submit a Skill
 
