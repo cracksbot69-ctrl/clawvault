@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawVault — Trusted OpenClaw Skills</title>
+<meta name="description" content="The secure, verified skill marketplace for OpenClaw. Every skill scanned. No supply chain attacks.">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --border: #2a2a3a;
+  --accent: #7c3aed;
+  --accent2: #a78bfa;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --radius: 12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* Typography */
+h1{font-size:clamp(2.2rem,5vw,4rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1}
+h2{font-size:clamp(1.5rem,3vw,2.4rem);font-weight:700;letter-spacing:-0.02em}
+h3{font-size:1.1rem;font-weight:600}
+p{color:var(--muted);line-height:1.7}
+
+/* Layout */
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1200px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;color:var(--text);text-decoration:none}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.nav-links{display:flex;align-items:center;gap:8px}
+.nav-links a{color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;transition:.15s}
+.nav-links a:hover{color:var(--text);background:var(--bg3)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer;border:none;text-decoration:none;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6d28d9}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg3)}
+
+/* Hero */
+.hero{padding:160px 0 100px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(ellipse,rgba(124,58,237,0.15) 0%,transparent 70%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:var(--accent2);padding:6px 14px;border-radius:100px;font-size:.8rem;font-weight:600;margin-bottom:24px}
+.badge-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1 span{background:linear-gradient(135deg,var(--accent2),#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:1.1rem;max-width:560px;margin:20px auto 40px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-stats{display:flex;gap:40px;justify-content:center;margin-top:60px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-num{font-size:2rem;font-weight:800;color:var(--text)}
+.stat-label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+/* Trust Banner */
+.trust-banner{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:16px 24px;display:flex;align-items:center;gap:12px;margin:0 auto 60px;max-width:700px}
+.trust-banner .icon{font-size:1.4rem;flex-shrink:0}
+.trust-banner strong{color:#fca5a5;font-size:.9rem;display:block}
+.trust-banner span{color:var(--muted);font-size:.85rem}
+
+/* Features Grid */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px}
+.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:.2s}
+.feature-card:hover{border-color:rgba(124,58,237,0.4);transform:translateY(-2px)}
+.feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px}
+.feature-card h3{margin-bottom:8px;color:var(--text)}
+
+/* Security Section */
+.security-showcase{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:48px}
+@media(max-width:768px){.security-showcase{grid-template-columns:1fr}}
+.security-steps{display:flex;flex-direction:column;gap:16px}
+.security-step{display:flex;align-items:flex-start;gap:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.step-num{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.security-terminal{background:#0d1117;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.terminal-bar{background:#161b22;padding:12px 16px;display:flex;align-items:center;gap:8px}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-body{padding:20px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.82rem;line-height:1.8}
+.t-green{color:#3fb950}.t-yellow{color:#d29922}.t-red{color:#f85149}.t-blue{color:#79c0ff}.t-muted{color:#484f58}
+
+/* Skills Grid */
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:32px}
+.skill-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.skill-card:hover{border-color:rgba(124,58,237,0.5);transform:translateY(-2px)}
+.skill-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.skill-card.verified::before{background:linear-gradient(90deg,var(--green),#34d399)}
+.skill-card.featured::before{background:linear-gradient(90deg,var(--accent),#818cf8)}
+.skill-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.skill-name{font-weight:700;color:var(--text)}
+.skill-badges{display:flex;gap:6px}
+.badge-small{padding:2px 8px;border-radius:100px;font-size:.7rem;font-weight:600}
+.badge-verified{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+.badge-featured{background:rgba(124,58,237,0.15);color:var(--accent2);border:1px solid rgba(124,58,237,0.3)}
+.badge-new{background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3)}
+.skill-desc{font-size:.88rem;color:var(--muted);margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.skill-footer{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.skill-author{display:flex;align-items:center;gap:6px}
+.skill-avatar{width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff}
+.skill-stars{color:var(--yellow)}
+.skill-installs{color:var(--muted)}
+
+/* Categories */
+.categories{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.cat-btn{padding:7px 16px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.85rem;cursor:pointer;transition:.15s}
+.cat-btn:hover,.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Install Banner */
+.install-banner{background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(79,70,229,0.1));border:1px solid rgba(124,58,237,0.2);border-radius:var(--radius);padding:32px;text-align:center;margin-top:40px}
+.install-cmd{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 20px;font-family:monospace;font-size:.95rem;color:#7c3aed;display:inline-block;margin:16px 0;cursor:pointer;transition:.15s}
+.install-cmd:hover{border-color:var(--accent)}
+
+/* Pricing */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:48px}
+.price-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px;position:relative}
+.price-card.popular{border-color:var(--accent)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:4px 16px;border-radius:100px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.price{font-size:2.5rem;font-weight:800;color:var(--text)}
+.price span{font-size:1rem;color:var(--muted);font-weight:400}
+.price-features{list-style:none;margin:24px 0;display:flex;flex-direction:column;gap:10px}
+.price-features li{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--muted)}
+.price-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+/* Footer */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr}}
+.footer-brand p{font-size:.9rem;margin-top:12px;max-width:220px}
+.footer-col h4{font-weight:600;color:var(--text);margin-bottom:16px;font-size:.9rem}
+.footer-col a{display:block;color:var(--muted);text-decoration:none;font-size:.88rem;padding:3px 0;transition:.15s}
+.footer-col a:hover{color:var(--text)}
+.footer-bottom{border-top:1px solid var(--border);margin-top:40px;padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap}
+.footer-bottom p{font-size:.85rem}
+
+/* Search */
+.search-bar{position:relative;max-width:500px;margin:0 auto 32px}
+.search-bar input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 20px 14px 48px;color:var(--text);font-size:.95rem;outline:none;transition:.15s}
+.search-bar input:focus{border-color:var(--accent)}
+.search-bar input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.1rem;pointer-events:none}
+
+/* Notification */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--green);color:var(--text);padding:12px 20px;border-radius:10px;font-size:.88rem;z-index:999;transform:translateY(100px);opacity:0;transition:.3s}
+.notif.show{transform:translateY(0);opacity:1}
+
+@media(max-width:768px){
+  nav .nav-links a:not(:last-child){display:none}
+  .hero-stats{gap:24px}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">🔒</div>
+      ClawVault
+    </a>
+    <div class="nav-links">
+      <a href="#skills">Skills</a>
+      <a href="#security">Security</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw</a>
+      <a href="#submit" class="btn btn-primary">Submit Skill</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="trust-banner">
+      <span class="icon">⚠️</span>
+      <div>
+        <strong>ClawHub supply chain attack — 1,184 malicious skills detected</strong>
+        <span>ClawVault is the community's answer: every skill scanned, every author verified.</span>
+      </div>
+    </div>
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Open Beta · 847 verified skills
+    </div>
+    <h1>The skill store<br><span>OpenClaw deserves</span></h1>
+    <p>Every skill is automatically scanned for malware, reviewed by the community, and signed before publish. No surprises. No backdoors.</p>
+    <div class="hero-btns">
+      <a href="#skills" class="btn btn-primary">Browse Skills →</a>
+      <a href="#submit" class="btn btn-ghost">Submit Your Skill</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">847</div><div class="stat-label">Verified Skills</div></div>
+      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Malware Incidents</div></div>
+      <div class="stat"><div class="stat-num">12k+</div><div class="stat-label">Installs this week</div></div>
+      <div class="stat"><div class="stat-num">340+</div><div class="stat-label">Contributors</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features">
+  <div class="container">
+    <h2>Why ClawVault?</h2>
+    <p>Built after ClawHub got compromised. Trust should be default, not optional.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1)">🛡️</div>
+        <h3>Automatic Security Scanning</h3>
+        <p>Every skill runs through static analysis, pattern matching, and sandboxed execution before going live.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,58,237,0.1)">✍️</div>
+        <h3>Author Verification</h3>
+        <p>GitHub OAuth required. Anonymous uploads are not allowed. Every skill is tied to a real GitHub account.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1)">🔁</div>
+        <h3>Community Review</h3>
+        <p>Skills need 3 community approvals before going live. The community is the second line of defense.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(59,130,246,0.1)">📦</div>
+        <h3>One-Line Install</h3>
+        <p>Install any skill instantly. Fully compatible with the OpenClaw CLI you already use.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.1)">🔔</div>
+        <h3>CVE Alerts</h3>
+        <p>Get notified instantly when a skill you use has a new vulnerability — before it can hurt you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1)">💰</div>
+        <h3>Sell Premium Skills</h3>
+        <p>Charge for your advanced skills. We take 10%. You keep 90%. Payouts via Stripe every month.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Security -->
+<section class="section" id="security" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="container">
+    <h2>4-Layer Security Pipeline</h2>
+    <p>Every skill goes through all four checks. No exceptions.</p>
+    <div class="security-showcase">
+      <div class="security-steps">
+        <div class="security-step">
+          <div class="step-num">1</div>
+          <div>
+            <h3>Static Analysis</h3>
+            <p style="font-size:.88rem;margin-top:4px">AST scan for eval, exec, network calls to unknown hosts, obfuscated code, base64 payloads.</p>
+          </div>
+        </div>
+        <div class="security-step">
+          <div class="step-num">2</div>
+          <div>
+            <h3>Sandboxed Execution</h3>
+            <p style="font-size:.88rem;margin-top:4px">Skill runs in isolated Docker container with network disabled. Monitors system calls and file access.</p>
+          </div>
+        </div>
+        <div class="security-step">
+          <div class="step-num">3</div>
+          <div>
+            <h3>Dependency Audit</h3>
+            <p style="font-size:.88rem;margin-top:4px">All npm/pip dependencies scanned against CVE database. Typosquatting detection on package names.</p>
+          </div>
+        </div>
+        <div class="security-step">
+          <div class="step-num">4</div>
+          <div>
+            <h3>Community Review</h3>
+            <p style="font-size:.88rem;margin-top:4px">3 trusted community members review code before publish. Human eyes catch what scanners miss.</p>
+          </div>
+        </div>
+      </div>
+      <div class="security-terminal">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background:#ff5f57"></div>
+          <div class="terminal-dot" style="background:#febc2e"></div>
+          <div class="terminal-dot" style="background:#28c840"></div>
+          <span style="font-size:.75rem;color:#484f58;margin-left:8px">clawvault-scanner</span>
+        </div>
+        <div class="terminal-body">
+          <span class="t-muted">$ </span><span class="t-blue">clawvault scan</span> <span class="t-green">./my-skill</span><br><br>
+          <span class="t-muted">▸ Static analysis...</span><br>
+          <span class="t-green">  ✓ No eval() or exec() calls</span><br>
+          <span class="t-green">  ✓ No obfuscated code detected</span><br>
+          <span class="t-green">  ✓ Network calls: localhost only</span><br><br>
+          <span class="t-muted">▸ Sandbox execution...</span><br>
+          <span class="t-green">  ✓ No unexpected file access</span><br>
+          <span class="t-green">  ✓ No outbound connections</span><br>
+          <span class="t-green">  ✓ Exit code: 0</span><br><br>
+          <span class="t-muted">▸ Dependency audit...</span><br>
+          <span class="t-green">  ✓ 3 packages, 0 vulnerabilities</span><br>
+          <span class="t-green">  ✓ No typosquatting detected</span><br><br>
+          <span class="t-green">✓ PASSED</span> <span class="t-muted">— ready for community review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Skills Browser -->
+<section class="section" id="skills">
+  <div class="container">
+    <h2>Browse Verified Skills</h2>
+    <p>All skills scanned, signed, and community-approved.</p>
+    <br>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search skills..." id="searchInput" oninput="filterSkills()">
+    </div>
+    <div class="categories" id="categories">
+      <button class="cat-btn active" onclick="filterCat('all',this)">All</button>
+      <button class="cat-btn" onclick="filterCat('productivity',this)">📋 Productivity</button>
+      <button class="cat-btn" onclick="filterCat('smart-home',this)">🏠 Smart Home</button>
+      <button class="cat-btn" onclick="filterCat('finance',this)">💰 Finance</button>
+      <button class="cat-btn" onclick="filterCat('communication',this)">💬 Communication</button>
+      <button class="cat-btn" onclick="filterCat('developer',this)">⚙️ Developer</button>
+      <button class="cat-btn" onclick="filterCat('ai',this)">🤖 AI</button>
+    </div>
+    <div class="skills-grid" id="skillsGrid"></div>
+    <div class="install-banner">
+      <h3>Install any skill in seconds</h3>
+      <p>Works with your existing OpenClaw setup. No configuration needed.</p>
+      <div class="install-cmd" onclick="copyCmd(this)">openclaw skill install @clawvault/skill-name</div>
+      <p style="font-size:.8rem">Click to copy</p>
+    </div>
+  </div>
+</section>
+
+<!-- Submit -->
+<section class="section" id="submit" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="container" style="text-align:center;max-width:600px;margin:0 auto">
+    <h2>Submit Your Skill</h2>
+    <p>Share what you've built. Help the community. Earn from premium skills.</p>
+    <br><br>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:left">
+      <div style="margin-bottom:20px">
+        <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px">Skill Name</label>
+        <input type="text" placeholder="e.g. daily-briefing" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:.9rem;outline:none">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px">GitHub Repository URL</label>
+        <input type="text" placeholder="https://github.com/you/your-skill" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:.9rem;outline:none">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px">Category</label>
+        <select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:.9rem;outline:none">
+          <option>Productivity</option>
+          <option>Smart Home</option>
+          <option>Finance</option>
+          <option>Communication</option>
+          <option>Developer</option>
+          <option>AI</option>
+        </select>
+      </div>
+      <div style="margin-bottom:24px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem;color:var(--muted)">
+          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent)">
+          I want to sell this as a premium skill
+        </label>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px" onclick="showNotif('Connecting to GitHub...')">
+        Continue with GitHub →
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section" id="pricing">
+  <div class="container">
+    <h2>Simple Pricing</h2>
+    <p>Free for developers. Paid for teams and premium skill creators.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3 style="margin-bottom:8px">Free</h3>
+        <div class="price">€0<span>/month</span></div>
+        <p style="font-size:.85rem;margin-top:8px">For individuals and hobbyists</p>
+        <ul class="price-features">
+          <li>Browse all verified skills</li>
+          <li>Install unlimited free skills</li>
+          <li>Submit up to 3 skills</li>
+          <li>Community review queue</li>
+          <li>Basic CVE alerts</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" style="width:100%;justify-content:center">Get Started Free</a>
+      </div>
+      <div class="price-card popular">
+        <div class="popular-badge">⭐ Most Popular</div>
+        <h3 style="margin-bottom:8px">Developer</h3>
+        <div class="price">€4<span>.99/month</span></div>
+        <p style="font-size:.85rem;margin-top:8px">For active OpenClaw builders</p>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Unlimited skill submissions</li>
+          <li>Priority review (24h)</li>
+          <li>Sell premium skills (90% revenue)</li>
+          <li>Real-time CVE alerts</li>
+          <li>Verified developer badge</li>
+          <li>Early access to new features</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="width:100%;justify-content:center">Start for €4.99</a>
+      </div>
+      <div class="price-card">
+        <h3 style="margin-bottom:8px">Team</h3>
+        <div class="price">€19<span>/month</span></div>
+        <p style="font-size:.85rem;margin-top:8px">For companies and power users</p>
+        <ul class="price-features">
+          <li>Everything in Developer</li>
+          <li>Private skill registry</li>
+          <li>Team access management</li>
+          <li>SLA on security scans</li>
+          <li>Custom scanner rules</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" style="width:100%;justify-content:center">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="display:inline-flex;text-decoration:none">
+          <div class="logo-icon" style="margin-right:10px">🔒</div>
+          ClawVault
+        </div>
+        <p>The trusted skill store for the OpenClaw community. Built after ClawHub.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#skills">Browse Skills</a>
+        <a href="#submit">Submit Skill</a>
+        <a href="#security">Security</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <a href="#">Discord</a>
+        <a href="#">GitHub</a>
+        <a href="#">Twitter / X</a>
+        <a href="#">Blog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Security Policy</a>
+        <a href="#">CVE Disclosure</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p style="color:var(--muted)">© 2026 ClawVault · Not affiliated with OpenClaw. Community project.</p>
+      <p style="color:var(--muted);font-size:.8rem">Built to keep the community safe 🔒</p>
+    </div>
+  </div>
+</footer>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const API = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+  ? 'http://localhost:3001' : '';
+
+let currentCat = 'all';
+let allSkills   = [];
+
+async function loadSkills() {
+  const grid = document.getElementById('skillsGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">Loading skills...</div>';
+  try {
+    const res  = await fetch(`${API}/api/skills`);
+    allSkills  = await res.json();
+    // Lade auch Stats
+    const stats = await fetch(`${API}/api/stats`).then(r=>r.json()).catch(()=>null);
+    if(stats) {
+      document.querySelectorAll('.stat-num')[0].textContent = stats.verified_skills.toLocaleString();
+      document.querySelectorAll('.stat-num')[2].textContent = (stats.total_installs/1000).toFixed(1)+'k+';
+    }
+  } catch(e) {
+    // Fallback: statische Demo-Daten
+    allSkills = [
+      {name:'daily-briefing',description:'Personalized morning summary: weather, calendar, news, crypto.',category:'productivity',author:'paulkr',stars:4.9,installs:3200,verified:1,featured:1},
+      {name:'home-assistant',description:'Full Home Assistant integration. Control everything via natural language.',category:'smart-home',author:'homelab_felix',stars:4.8,installs:2100,verified:1,featured:0},
+      {name:'crypto-alerts',description:'Price alerts, portfolio tracking, DeFi notifications. 500+ tokens.',category:'finance',author:'defi_dev',stars:4.7,installs:1800,verified:1,featured:0},
+      {name:'smart-reminders',description:'Context-aware reminders. "remind me when BTC hits 100k" works.',category:'productivity',author:'remindbot',stars:4.9,installs:5100,verified:1,featured:1},
+      {name:'shelly-control',description:'Control Shelly smart home devices. All Gen1/Gen2/Gen3.',category:'smart-home',author:'iot_felix',stars:4.7,installs:743,verified:1,featured:0},
+      {name:'ai-summarizer',description:'Summarize any URL, PDF or text. Articles, research, YouTube.',category:'ai',author:'aitools',stars:4.8,installs:4200,verified:1,featured:1},
+      {name:'spotify-controller',description:'Full Spotify control via natural language.',category:'productivity',author:'musicdev',stars:4.6,installs:2900,verified:1,featured:0},
+      {name:'github-digest',description:'Daily GitHub notification digest. PRs, issues, reviews.',category:'developer',author:'opensrc_anna',stars:4.6,installs:1400,verified:1,featured:0},
+    ];
+  }
+  filterSkills();
+}
+
+function renderSkills(skills) {
+  const grid = document.getElementById('skillsGrid');
+  if(!skills.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">No skills found</div>';
+    return;
+  }
+  grid.innerHTML = skills.map(s => `
+    <div class="skill-card ${s.verified?'verified':''} ${s.featured?'featured':''}" onclick="copyInstall('${s.name}')">
+      <div class="skill-header">
+        <div class="skill-name">@clawvault/${s.name}</div>
+        <div class="skill-badges">
+          ${s.verified ? '<span class="badge-small badge-verified">✓ Verified</span>' : ''}
+          ${s.featured ? '<span class="badge-small badge-featured">⭐ Featured</span>' : ''}
+        </div>
+      </div>
+      <div class="skill-desc">${s.description||''}</div>
+      <div class="skill-footer">
+        <div class="skill-author">
+          <div class="skill-avatar">${(s.author||'?')[0].toUpperCase()}</div>
+          @${s.author||'unknown'}
+        </div>
+        <div style="display:flex;gap:12px">
+          <span class="skill-stars">★ ${Number(s.stars||0).toFixed(1)}</span>
+          <span class="skill-installs">↓ ${s.installs>999?(s.installs/1000).toFixed(1)+'k':s.installs}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterSkills() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = allSkills.filter(s => currentCat==='all' || s.category===currentCat);
+  if(q) filtered = filtered.filter(s => s.name.includes(q) || (s.description||'').toLowerCase().includes(q));
+  renderSkills(filtered);
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterSkills();
+}
+
+function copyInstall(name) {
+  navigator.clipboard.writeText(`openclaw skill install @clawvault/${name}`);
+  showNotif(`✓ Copied: openclaw skill install @clawvault/${name}`);
+}
+
+function copyCmd(el) {
+  navigator.clipboard.writeText(el.textContent.trim());
+  showNotif('✓ Copied to clipboard!');
+}
+
+function showNotif(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Init
+loadSkills();
+</script>
+</body>
+</html>
