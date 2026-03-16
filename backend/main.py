@@ -244,11 +244,18 @@ def skill_status(skill_id: str):
 @app.get("/api/stats")
 def stats():
     with db() as c:
+        reports_count = 0
+        try:
+            reports_count = c.execute("SELECT COUNT(*) FROM reports").fetchone()[0]
+        except Exception:
+            pass
         return {
             "verified_skills":  c.execute("SELECT COUNT(*) FROM skills WHERE status='verified'").fetchone()[0],
             "total_installs":   c.execute("SELECT COALESCE(SUM(installs),0) FROM skills").fetchone()[0],
             "pending_review":   c.execute("SELECT COUNT(*) FROM skills WHERE status IN ('pending','review','scanning')").fetchone()[0],
             "failed_scans":     c.execute("SELECT COUNT(*) FROM skills WHERE status='failed'").fetchone()[0],
+            "total_reviews":    c.execute("SELECT COUNT(*) FROM reviews").fetchone()[0],
+            "open_reports":     reports_count,
         }
 
 @app.get("/api/new")
@@ -369,6 +376,20 @@ def admin_delete(skill_id: str, authorization: str = Header(None)):
         c.commit()
     return {"ok": True}
 
+@app.get("/api/admin/reports")
+def admin_reports(authorization: str = Header(None)):
+    require_admin(authorization)
+    with db() as c:
+        try:
+            rows = c.execute("""
+                SELECT r.*, s.name as skill_name FROM reports r
+                LEFT JOIN skills s ON s.id = r.skill_id
+                ORDER BY r.created_at DESC LIMIT 50
+            """).fetchall()
+            return [dict(row) for row in rows]
+        except Exception:
+            return []
+
 @app.post("/api/admin/rescan/{skill_id}")
 def admin_rescan(skill_id: str, bg: BackgroundTasks, authorization: str = Header(None)):
     require_admin(authorization)
@@ -379,6 +400,23 @@ def admin_rescan(skill_id: str, bg: BackgroundTasks, authorization: str = Header
         c.commit()
     bg.add_task(run_scan_background, skill_id, row["github_url"])
     return {"ok": True, "message": "Rescan started"}
+
+@app.get("/api/skill-template")
+def skill_template():
+    """Download a skill.json template for OpenClaw skill developers."""
+    from fastapi.responses import JSONResponse
+    template = {
+        "name": "my-skill",
+        "version": "1.0.0",
+        "description": "What your skill does in one sentence.",
+        "author": "your-github-username",
+        "category": "productivity",
+        "entrypoint": "main.py",
+        "openclaw_version": ">=1.0.0",
+        "permissions": [],
+        "config": {}
+    }
+    return JSONResponse(content=template, headers={"Content-Disposition": "attachment; filename=skill.json"})
 
 # ── Serve Frontend ────────────────────────────────────────────────────────────
 if FRONTEND.exists():

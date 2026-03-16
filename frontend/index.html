@@ -389,7 +389,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
 <div id="submitPage" style="display:none;padding-top:100px;min-height:100vh">
   <div class="container" style="max-width:600px;margin:0 auto;padding-bottom:80px">
     <button onclick="goHome()" class="btn btn-ghost btn-sm" style="margin-bottom:24px">← Back</button>
-    <h2 style="color:var(--text)">Submit Your Skill</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:8px">
+      <h2 style="color:var(--text)">Submit Your Skill</h2>
+      <a href="/api/skill-template" class="btn btn-ghost btn-sm" download="skill.json">⬇ skill.json Template</a>
+    </div>
     <p style="margin-bottom:32px">Share what you've built. Security scan usually completes in under 60 seconds.</p>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px">
       <div class="form-group"><label>Skill Name *</label><input type="text" class="form-input" id="fName" placeholder="e.g. daily-briefing"><div class="field-error" id="fNameErr"></div></div>
@@ -438,8 +441,12 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
         </div>
       </div>
       <div class="admin-stats" id="adminStats"></div>
-      <h3 style="color:var(--text);margin-bottom:16px">Review Queue</h3>
+      <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px">
+        <button class="btn btn-ghost btn-sm" id="tabQueue" onclick="switchAdminTab('queue')" style="border-color:var(--accent);color:var(--accent)">Review Queue</button>
+        <button class="btn btn-ghost btn-sm" id="tabReports" onclick="switchAdminTab('reports')">Reports</button>
+      </div>
       <div id="adminQueue"></div>
+      <div id="adminReports" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -863,7 +870,7 @@ async function loadAdminQueue(){
     const[qRes,sRes]=await Promise.all([fetch(API+'/api/admin/queue',{headers:{Authorization:'Bearer '+adminToken}}),fetch(API+'/api/stats')]);
     if(qRes.status===403){document.getElementById('adminLoginErr').textContent='Invalid token';document.getElementById('adminLoginErr').style.display='';adminLogout();return;}
     const queue=await qRes.json(),stats=await sRes.json();
-    sEl.innerHTML=`<div class="admin-stat"><div class="admin-stat-num">${stats.verified_skills}</div><div class="admin-stat-label">Verified</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.pending_review}</div><div class="admin-stat-label">Pending</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.failed_scans}</div><div class="admin-stat-label">Failed</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.total_installs}</div><div class="admin-stat-label">Total Installs</div></div>`;
+    sEl.innerHTML=`<div class="admin-stat"><div class="admin-stat-num">${stats.verified_skills}</div><div class="admin-stat-label">Verified</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.pending_review}</div><div class="admin-stat-label">Pending</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.failed_scans}</div><div class="admin-stat-label">Failed</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.total_installs}</div><div class="admin-stat-label">Installs</div></div><div class="admin-stat"><div class="admin-stat-num">${stats.total_reviews||0}</div><div class="admin-stat-label">Reviews</div></div><div class="admin-stat"><div class="admin-stat-num" style="color:${(stats.open_reports||0)>0?'var(--red)':'var(--green)'}">${stats.open_reports||0}</div><div class="admin-stat-label">Reports</div></div>`;
     if(!queue.length){qEl.innerHTML='<p style="color:var(--muted);text-align:center;padding:40px">Queue is empty.</p>';}
     else{
       qEl.innerHTML=queue.map(s=>{
@@ -893,6 +900,33 @@ async function loadAdminQueue(){
     else if(!hasScanning&&adminRefreshTimer){clearInterval(adminRefreshTimer);adminRefreshTimer=null;}
   }catch(e){qEl.innerHTML='<p style="color:var(--red)">Error loading queue.</p>';}
 }
+function switchAdminTab(tab){
+  document.getElementById('adminQueue').style.display=tab==='queue'?'':'none';
+  document.getElementById('adminReports').style.display=tab==='reports'?'':'none';
+  document.getElementById('tabQueue').style.cssText=tab==='queue'?'border-color:var(--accent);color:var(--accent)':'';
+  document.getElementById('tabReports').style.cssText=tab==='reports'?'border-color:var(--accent);color:var(--accent)':'';
+  if(tab==='reports')loadAdminReports();
+}
+
+async function loadAdminReports(){
+  const el=document.getElementById('adminReports');
+  el.innerHTML='<p style="color:var(--muted)">Loading…</p>';
+  try{
+    const reports=await fetch(API+'/api/admin/reports',{headers:{Authorization:'Bearer '+adminToken}}).then(r=>r.json());
+    if(!reports.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:40px">No reports.</p>';return;}
+    el.innerHTML=reports.map(r=>`
+      <div style="background:var(--bg2);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div>
+            <span style="font-weight:700;color:var(--text)">@clawvault/${escHtml(r.skill_name||r.skill_id)}</span>
+            <span style="font-size:.75rem;color:var(--muted);margin-left:8px">${(r.created_at||'').slice(0,10)}</span>
+          </div>
+        </div>
+        <div style="font-size:.85rem;color:var(--muted);margin-top:6px">${escHtml(r.reason||'No reason given')}</div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<p style="color:var(--red)">Error loading reports.</p>';}
+}
+
 async function adminApprove(id){await fetch(API+'/api/admin/approve/'+id,{method:'POST',headers:{Authorization:'Bearer '+adminToken}});showNotif('✓ Skill approved');loadAdminQueue();}
 function adminShowReject(id){document.getElementById('rjf-'+id).style.display='';document.getElementById('rjr-'+id).focus();}
 async function adminReject(id){const reason=document.getElementById('rjr-'+id).value;await fetch(API+'/api/admin/reject/'+id,{method:'POST',headers:{Authorization:'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({reason})});showNotif('Skill rejected');loadAdminQueue();}
