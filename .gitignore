@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 *.db
+*.sqlite
 .env
 node_modules/
 dist/
+.venv/
