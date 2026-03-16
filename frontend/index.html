@@ -293,6 +293,14 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
     <h2>Browse Verified Skills</h2>
     <p>All skills scanned, signed, and community-approved.</p>
     <br>
+    <!-- New This Week -->
+    <div id="newSection" style="margin-bottom:32px;display:none">
+      <div class="trending-header">
+        <div class="trending-label" style="color:var(--green)"><span class="trending-dot" style="background:var(--green)"></span>New This Week</div>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none" id="newScroll"></div>
+    </div>
+
     <!-- Trending Section -->
     <div id="trendingSection" style="margin-bottom:40px;display:none">
       <div class="trending-header">
@@ -443,7 +451,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
         </div>
         <p style="font-size:.85rem" id="modalAuthor"></p>
       </div>
-      <button class="modal-close" onclick="document.getElementById('skillModal').classList.remove('open')">×</button>
+      <button class="modal-close" onclick="document.getElementById('skillModal').classList.remove('open');if(window.location.pathname.startsWith('/skills/'))history.replaceState(null,'','/')">×</button>
     </div>
     <div class="modal-body" style="padding-top:0">
       <!-- Tabs -->
@@ -532,7 +540,32 @@ function routeByPath(){
   if(p==='/admin'){showAdmin();return;}
   if(p.startsWith('/status/')){showStatus(p.replace('/status/',''));return;}
   if(p==='/submit'){showSubmit();return;}
+  if(p.startsWith('/skills/')){
+    const name=p.replace('/skills/','');
+    showPage('main');
+    loadSkills().then(()=>{
+      const s=allSkills.find(x=>x.name===name);
+      if(s) openSkillModal(JSON.stringify(JSON.stringify(s)));
+      else fetch(API+'/api/skills/by-name/'+encodeURIComponent(name)).then(r=>r.json()).then(s=>openSkillModal(JSON.stringify(JSON.stringify(s)))).catch(()=>{});
+    });
+    return;
+  }
   showPage('main');loadSkills();
+}
+
+async function loadNewSkills(){
+  try{
+    const data=await fetch(API+'/api/new?limit=6').then(r=>r.json());
+    const sc=document.getElementById('newScroll');
+    if(!data.length){document.getElementById('newSection').style.display='none';return;}
+    document.getElementById('newSection').style.display='';
+    sc.innerHTML=data.map(s=>`
+      <div style="flex-shrink:0;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 16px;cursor:pointer;transition:.2s;min-width:160px;max-width:200px" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})' onmouseover="this.style.borderColor='rgba(16,185,129,.5)'" onmouseout="this.style.borderColor='rgba(16,185,129,.2)'">
+        <div style="font-size:.68rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">✦ New</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">by @${s.author}</div>
+      </div>`).join('');
+  }catch(e){document.getElementById('newSection').style.display='none';}
 }
 
 async function loadTrending(){
@@ -582,6 +615,7 @@ async function loadSkills(){
   }
   filterSkills();
   loadTrending();
+  loadNewSkills();
 }
 
 function scoreBadge(s){if(!s)return'';const c=s>=90?'badge-score-green':s>=70?'badge-score-yellow':'badge-score-red';return`<span class="badge-small ${c}">${s}</span>`;}
@@ -646,12 +680,18 @@ function openSkillModal(jsonStr){
   if(issues.length){sec.style.display='';document.getElementById('modalIssues').innerHTML=issues.map(i=>`<div class="issue-item"><span style="color:${i.level==='HIGH'?'var(--red)':i.level==='MEDIUM'?'var(--yellow)':'var(--accent2)'};font-weight:700;font-size:.75rem;flex-shrink:0">${i.level||'INFO'}</span><span style="color:var(--muted)">${i.file||''} — ${i.msg||i.message||''}</span></div>`).join('');}
   else sec.style.display='none';
   document.getElementById('skillModal').classList.add('open');
+  history.replaceState(null,'','/skills/'+s.name);
   // Pre-load review count
   fetch(API+'/api/skills/'+s.id+'/reviews').then(r=>r.json()).then(reviews=>{
     document.getElementById('reviewCountBadge').textContent=reviews.length||0;
   }).catch(()=>{});
 }
-function closeModal(e){if(e.target===document.getElementById('skillModal'))document.getElementById('skillModal').classList.remove('open');}
+function closeModal(e){
+  if(e.target===document.getElementById('skillModal')){
+    document.getElementById('skillModal').classList.remove('open');
+    if(window.location.pathname.startsWith('/skills/'))history.replaceState(null,'','/');
+  }
+}
 function copyModalCmd(){const c=document.getElementById('modalCmd').textContent;navigator.clipboard.writeText(c);showNotif('✓ Copied: '+c);}
 
 // ── Star Rating Widget ──────────────────────────────────────────────────────

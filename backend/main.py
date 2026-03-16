@@ -251,6 +251,25 @@ def stats():
             "failed_scans":     c.execute("SELECT COUNT(*) FROM skills WHERE status='failed'").fetchone()[0],
         }
 
+@app.get("/api/new")
+def new_skills(limit: int = 6):
+    """Most recently verified skills."""
+    with db() as c:
+        rows = c.execute(
+            "SELECT * FROM skills WHERE status='verified' ORDER BY created_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+@app.get("/api/skills/by-name/{name}")
+def get_skill_by_name(name: str):
+    """Lookup skill by name slug (for /skills/{name} URLs)."""
+    with db() as c:
+        row = c.execute("SELECT * FROM skills WHERE name=? AND status='verified'", (name,)).fetchone()
+        if not row:
+            raise HTTPException(404, "Skill not found")
+        return dict(row)
+
 @app.get("/api/trending")
 def trending():
     """Top 6 skills by installs in last 7 days, falls back to all-time."""
