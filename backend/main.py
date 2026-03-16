@@ -469,16 +469,19 @@ class ReviewBody(BaseModel):
     comment: str = ""
 
 @app.post("/api/skills/{skill_id}/review")
-def post_review(skill_id: str, body: ReviewBody):
+def post_review(skill_id: str, body: ReviewBody, authorization: str = Header(None)):
     if not 1 <= body.rating <= 5:
         raise HTTPException(422, "Rating must be 1-5")
+    user = get_user_by_token(authorization)
     with db() as c:
         row = c.execute("SELECT id FROM skills WHERE id=? AND status='verified'", (skill_id,)).fetchone()
         if not row:
             raise HTTPException(404, "Skill not found")
+        author = (user["username"] if user else (body.author or "Anonymous"))[:50]
+        user_id = user["id"] if user else None
         c.execute(
-            "INSERT INTO reviews(skill_id,author,rating,comment) VALUES(?,?,?,?)",
-            (skill_id, (body.author or "Anonymous")[:50], body.rating, (body.comment or "")[:500])
+            "INSERT INTO reviews(skill_id,author,user_id,rating,comment) VALUES(?,?,?,?,?)",
+            (skill_id, author, user_id, body.rating, (body.comment or "")[:500])
         )
         # Recalculate avg stars
         avg = c.execute("SELECT AVG(rating) FROM reviews WHERE skill_id=?", (skill_id,)).fetchone()[0]
@@ -587,6 +590,107 @@ def get_changelog(skill_id: str):
                 "SELECT * FROM changelog WHERE skill_id=? ORDER BY created_at DESC LIMIT 10",
                 (skill_id,)
             ).fetchall()
+            return [dict(r) for r in rows]
+        except Exception:
+            return []
+
+# ── Follow System ─────────────────────────────────────────────────────────────
+
+@app.post("/api/users/{username}/follow")
+def follow_user(username: str, authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        c.execute("CREATE TABLE IF NOT EXISTS follows (follower_id TEXT, followee TEXT, created_at TEXT DEFAULT (datetime('now')), PRIMARY KEY(follower_id, followee))")
+        if username.lower() == user["username"].lower():
+            raise HTTPException(422, "Cannot follow yourself")
+        try:
+            c.execute("INSERT INTO follows(follower_id,followee) VALUES(?,?)", (user["id"], username.lower()))
+            c.commit()
+            return {"ok": True, "following": True}
+        except sqlite3.IntegrityError:
+            c.execute("DELETE FROM follows WHERE follower_id=? AND followee=?", (user["id"], username.lower()))
+            c.commit()
+            return {"ok": True, "following": False}
+
+@app.get("/api/users/{username}/followers")
+def get_followers(username: str):
+    with db() as c:
+        try:
+            count = c.execute("SELECT COUNT(*) FROM follows WHERE followee=?", (username.lower(),)).fetchone()[0]
+            return {"count": count}
+        except Exception:
+            return {"count": 0}
+
+@app.get("/api/users/{username}/following")
+def check_following(username: str, authorization: str = Header(None)):
+    user = get_user_by_token(authorization)
+    if not user:
+        return {"following": False}
+    with db() as c:
+        try:
+            row = c.execute("SELECT 1 FROM follows WHERE follower_id=? AND followee=?", (user["id"], username.lower())).fetchone()
+            return {"following": bool(row)}
+        except Exception:
+            return {"following": False}
+
+# ── Notifications/Preferences ─────────────────────────────────────────────────
+
+class NotifPrefsBody(BaseModel):
+    new_skills:    bool = True
+    followed_posts: bool = True
+    review_replies: bool = False
+
+@app.patch("/api/auth/notifications")
+def update_notif_prefs(body: NotifPrefsBody, authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        c.execute("CREATE TABLE IF NOT EXISTS notif_prefs (user_id TEXT PRIMARY KEY, new_skills INTEGER DEFAULT 1, followed_posts INTEGER DEFAULT 1, review_replies INTEGER DEFAULT 0, updated_at TEXT DEFAULT (datetime('now')))")
+        c.execute("INSERT OR REPLACE INTO notif_prefs(user_id,new_skills,followed_posts,review_replies) VALUES(?,?,?,?)",
+                  (user["id"], int(body.new_skills), int(body.followed_posts), int(body.review_replies)))
+        c.commit()
+    return {"ok": True}
+
+@app.get("/api/auth/notifications")
+def get_notif_prefs(authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        try:
+            row = c.execute("SELECT * FROM notif_prefs WHERE user_id=?", (user["id"],)).fetchone()
+            if row:
+                return dict(row)
+        except Exception:
+            pass
+    return {"new_skills": True, "followed_posts": True, "review_replies": False}
+
+@app.get("/api/leaderboard")
+def leaderboard(limit: int = 20):
+    """Top developers by total installs of their verified skills."""
+    with db() as c:
+        rows = c.execute("""
+            SELECT author,
+                   COUNT(*) as skill_count,
+                   SUM(installs) as total_installs,
+                   ROUND(AVG(stars), 1) as avg_stars,
+                   MAX(score) as top_score
+            FROM skills WHERE status='verified'
+            GROUP BY author
+            ORDER BY total_installs DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+        return [dict(r) for r in rows]
+
+@app.get("/api/feed")
+def activity_feed(authorization: str = Header(None)):
+    """Skills from developers the user follows."""
+    user = require_user(authorization)
+    with db() as c:
+        try:
+            rows = c.execute("""
+                SELECT s.* FROM skills s
+                INNER JOIN follows f ON LOWER(f.followee) = LOWER(s.author)
+                WHERE f.follower_id = ? AND s.status='verified'
+                ORDER BY s.created_at DESC LIMIT 20
+            """, (user["id"],)).fetchall()
             return [dict(r) for r in rows]
         except Exception:
             return []

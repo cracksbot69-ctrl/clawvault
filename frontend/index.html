@@ -225,6 +225,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
 .review-stars{font-size:.85rem;color:var(--yellow);letter-spacing:1px}
 .review-text{font-size:.85rem;color:var(--muted);line-height:1.6}
 .no-reviews{text-align:center;color:var(--muted);font-size:.88rem;padding:24px 0}
+/* ── Leaderboard ── */
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{width:28px;font-size:1rem;font-weight:800;color:var(--muted);text-align:center;flex-shrink:0}
+.lb-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#818cf8);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1rem;flex-shrink:0;cursor:pointer}
+.lb-info{flex:1;min-width:0}
+.lb-username{font-weight:700;color:var(--text);cursor:pointer;font-size:.95rem}
+.lb-username:hover{color:var(--accent2)}
+.lb-meta{font-size:.78rem;color:var(--muted);margin-top:2px}
+.lb-right{text-align:right;flex-shrink:0}
+.lb-installs{font-size:1.05rem;font-weight:800;color:var(--text)}
+.lb-installs-sub{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+/* ── Similar skills ── */
+.similar-strip{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.similar-label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.similar-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.similar-scroll::-webkit-scrollbar{display:none}
+.similar-chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;transition:.15s;max-width:180px}
+.similar-chip:hover{border-color:rgba(124,58,237,.4)}
+.similar-chip-name{font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.similar-chip-meta{font-size:.7rem;color:var(--muted);margin-top:2px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -235,8 +256,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
     <a class="logo" onclick="goHome()"><div class="logo-icon">🔒</div>ClawVault</a>
     <div class="nav-links">
       <a onclick="goHome();setTimeout(()=>document.getElementById('skills').scrollIntoView({behavior:'smooth'}),50)">Skills</a>
+      <a onclick="showLeaderboard()">Leaderboard</a>
       <a onclick="goHome();setTimeout(()=>document.getElementById('security').scrollIntoView({behavior:'smooth'}),50)">Security</a>
-      <a onclick="goHome();setTimeout(()=>document.getElementById('pricing').scrollIntoView({behavior:'smooth'}),50)">Pricing</a>
       <a href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw</a>
       <a onclick="showSubmit()" class="btn btn-primary">Submit Skill</a>
       <div id="navAuthArea"></div>
@@ -269,6 +290,17 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
     </div>
   </div>
 </section>
+<!-- Following feed (visible when logged in + following someone) -->
+<div id="feedSection" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 0">
+  <div class="container">
+    <div class="trending-header">
+      <div class="trending-label"><span style="color:var(--green);animation:pulse 2s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px"></span>Following</div>
+      <span style="font-size:.78rem;color:var(--muted)" id="feedCount"></span>
+    </div>
+    <div class="trending-scroll" id="feedScroll"></div>
+  </div>
+</div>
+
 <!-- Logged-in dashboard banner (hidden by default) -->
 <div id="userDashBanner" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 0">
   <div class="container">
@@ -546,6 +578,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
           <button class="btn btn-ghost btn-sm" onclick="shareSkill()">🔗 Share</button>
           <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="reportSkill()">⚑ Report</button>
         </div>
+        <div class="similar-strip" id="similarSection" style="display:none">
+          <div class="similar-label">Similar Skills</div>
+          <div class="similar-scroll" id="similarScroll"></div>
+        </div>
       </div>
 
       <!-- CHANGELOG TAB -->
@@ -627,6 +663,54 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
   </div>
 </div>
 
+<!-- Leaderboard Page -->
+<div id="leaderboardPage" style="display:none;padding-top:80px;min-height:100vh">
+  <div class="container" style="max-width:760px;padding-top:32px;padding-bottom:80px">
+    <button onclick="goHome()" class="btn btn-ghost btn-sm" style="margin-bottom:20px">← Back</button>
+    <h2 style="color:var(--text);margin-bottom:6px">Developer Leaderboard</h2>
+    <p style="margin-bottom:32px">Top OpenClaw skill developers, ranked by total installs.</p>
+    <div id="leaderboardList" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 24px"></div>
+  </div>
+</div>
+
+<!-- Welcome Modal -->
+<div class="auth-modal" id="welcomeModal" onclick="if(event.target===this)closeWelcome()">
+  <div class="auth-box" style="max-width:480px">
+    <div class="auth-header" style="padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:1.5rem;margin-bottom:4px">🎉</div>
+        <div style="font-weight:800;font-size:1.15rem;color:var(--text)" id="welcomeTitle">Welcome to ClawVault!</div>
+        <p style="font-size:.85rem;margin-top:4px">Here's what you can do with your account.</p>
+      </div>
+      <button onclick="closeWelcome()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div class="auth-body" style="padding:20px 24px">
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">⭐</div>
+          <div><div style="font-weight:700;color:var(--text);font-size:.9rem">Review skills</div><div style="font-size:.82rem;color:var(--muted)">Rate and review any skill in the marketplace</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🔖</div>
+          <div><div style="font-weight:700;color:var(--text);font-size:.9rem">Bookmark favorites</div><div style="font-size:.82rem;color:var(--muted)">Save skills to find them quickly later</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:justify;font-size:1.1rem;flex-shrink:0">👥</div>
+          <div><div style="font-weight:700;color:var(--text);font-size:.9rem">Follow developers</div><div style="font-size:.82rem;color:var(--muted)">Get a feed of new skills from developers you follow</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🚀</div>
+          <div><div style="font-weight:700;color:var(--text);font-size:.9rem">Publish skills</div><div style="font-size:.82rem;color:var(--muted)">Submit your own skills for security verification</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeWelcome();document.getElementById('skills').scrollIntoView({behavior:'smooth'})">Browse Skills →</button>
+        <button class="btn btn-ghost" onclick="closeWelcome();showSubmit()">Submit a Skill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -635,10 +719,10 @@ let currentCat='all',currentSort='installs',allSkills=[],statusPoll=null,adminTo
 let currentModalSkillId=null, selectedRating=0;
 
 function showPage(p){
-  ['mainSite','submitPage','statusPage','adminPage','profilePage'].forEach(id=>{
+  ['mainSite','submitPage','statusPage','adminPage','profilePage','leaderboardPage'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='none';
   });
-  const target={'main':'mainSite','submit':'submitPage','status':'statusPage','admin':'adminPage','profile':'profilePage'}[p];
+  const target={'main':'mainSite','submit':'submitPage','status':'statusPage','admin':'adminPage','profile':'profilePage','leaderboard':'leaderboardPage'}[p];
   if(target)document.getElementById(target).style.display='';
   if(adminRefreshTimer&&p!=='admin'){clearInterval(adminRefreshTimer);adminRefreshTimer=null;}
   if(statusPoll&&p!=='status'){clearInterval(statusPoll);statusPoll=null;}
@@ -660,6 +744,7 @@ window.addEventListener('popstate',routeByPath);
 function routeByPath(){
   const p=window.location.pathname;
   if(p==='/admin'){showAdmin();return;}
+  if(p==='/leaderboard'){showLeaderboard();return;}
   if(p.startsWith('/status/')){showStatus(p.replace('/status/',''));return;}
   if(p==='/submit'){showSubmit();return;}
   if(p.startsWith('/user/')){showProfile(p.replace('/user/',''));return;}
@@ -829,6 +914,8 @@ function openSkillModal(jsonStr){
   else sec.style.display='none';
   document.getElementById('skillModal').classList.add('open');
   history.replaceState(null,'','/skills/'+s.name);
+  // Load similar skills
+  loadSimilarSkills(s.id, s.category, s.name);
   // Pre-load review count
   fetch(API+'/api/skills/'+s.id+'/reviews').then(r=>r.json()).then(reviews=>{
     document.getElementById('reviewCountBadge').textContent=reviews.length||0;
@@ -892,8 +979,11 @@ async function submitReview(){
   const author=document.getElementById('reviewAuthor').value.trim()||'Anonymous';
   const comment=document.getElementById('reviewComment').value.trim();
   try{
+    const tok=localStorage.getItem(USER_TOKEN_KEY);
+    const hdrs={'Content-Type':'application/json'};
+    if(tok)hdrs['Authorization']='Bearer '+tok;
     const res=await fetch(API+'/api/skills/'+currentModalSkillId+'/review',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:hdrs,
       body:JSON.stringify({author,rating:selectedRating,comment})
     });
     if(!res.ok)throw new Error(await res.text());
@@ -1169,7 +1259,8 @@ async function doLogin(){
     currentUser=data;
     closeAuthModal();
     updateNavAuth();
-    showNotif('Welcome back, @'+data.username+' 👋');
+    loadFeed();
+    showNotif('Welcome back, @'+data.username+' \uD83D\uDC4B');
   }catch(e){errEl.textContent='Network error';errEl.style.display='';}
 }
 
@@ -1189,7 +1280,9 @@ async function doRegister(){
     currentUser=data;
     closeAuthModal();
     updateNavAuth();
-    showNotif('Welcome to ClawVault, @'+data.username+' 🎉');
+    loadFeed();
+    if(!localStorage.getItem('cv_welcomed'))showWelcome(data.username);
+    else showNotif('Welcome to ClawVault, @'+data.username+' \uD83C\uDF89');
   }catch(e){errEl.textContent='Network error';errEl.style.display='';}
 }
 
@@ -1203,9 +1296,15 @@ function logout(){
 // ── Profile Page ─────────────────────────────────────────────────────────
 async function loadProfile(username){
   const el=document.getElementById('profileContent');
-  el.innerHTML='<div style="color:var(--muted);padding:40px">Loading…</div>';
+  el.innerHTML='<div style="color:var(--muted);padding:40px 0">Loading\u2026</div>';
   try{
-    const data=await fetch(API+'/api/users/'+encodeURIComponent(username)).then(r=>r.json());
+    const tok=localStorage.getItem(USER_TOKEN_KEY);
+    const authHdr=tok?{headers:{Authorization:'Bearer '+tok}}:{};
+    const [data,followData,followerData]=await Promise.all([
+      fetch(API+'/api/users/'+encodeURIComponent(username)).then(r=>r.json()),
+      fetch(API+'/api/users/'+encodeURIComponent(username)+'/following',authHdr).then(r=>r.json()).catch(()=>({following:false})),
+      fetch(API+'/api/users/'+encodeURIComponent(username)+'/followers').then(r=>r.json()).catch(()=>({count:0}))
+    ]);
     const isMe=currentUser&&currentUser.username===data.username;
     const joinYear=(data.created_at||'2026').slice(0,4);
     const verifiedSkills=data.skills.filter(s=>s.status==='verified').length;
@@ -1214,14 +1313,20 @@ async function loadProfile(username){
         <div class="profile-card">
           <div class="profile-avatar">${data.username[0].toUpperCase()}</div>
           <div class="profile-username">@${escHtml(data.username)}</div>
-          ${data.github?`<div style="text-align:center;margin-top:6px"><a href="https://github.com/${escHtml(data.github)}" target="_blank" style="color:var(--accent2);font-size:.85rem">⌥ github.com/${escHtml(data.github)}</a></div>`:''}
+          ${data.github?`<div style="text-align:center;margin-top:6px"><a href="https://github.com/${escHtml(data.github)}" target="_blank" style="color:var(--accent2);font-size:.85rem">\u2325 github.com/${escHtml(data.github)}</a></div>`:''}
           ${data.bio?`<p style="text-align:center;font-size:.88rem;margin-top:12px">${escHtml(data.bio)}</p>`:''}
           <div class="profile-stats">
             <div class="profile-stat"><div class="profile-stat-n" style="color:var(--green)">${verifiedSkills}</div><div class="profile-stat-l">Skills</div></div>
-            <div class="profile-stat"><div class="profile-stat-n">${data.skills.length}</div><div class="profile-stat-l">Total</div></div>
+            <div class="profile-stat"><div class="profile-stat-n" id="followerCount">${followerData.count||0}</div><div class="profile-stat-l">Followers</div></div>
             <div class="profile-stat"><div class="profile-stat-n" style="color:var(--muted)">${joinYear}</div><div class="profile-stat-l">Joined</div></div>
           </div>
-          ${isMe?`<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:4px" onclick="showEditProfile()">Edit Profile</button><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;color:var(--muted)" onclick="showMyBookmarks()">🔖 My Bookmarks</button><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;color:var(--red)" onclick="logout();goHome()">Logout</button>`:''}
+          ${isMe
+            ?`<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:4px" onclick="showEditProfile()">Edit Profile</button>
+               <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="showMyBookmarks()">\uD83D\uDD16 My Bookmarks</button>
+               <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="showNotifPrefs()">\uD83D\uDD14 Notifications</button>
+               <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;color:var(--red)" onclick="logout();goHome()">Logout</button>`
+            :`<button class="btn ${followData.following?'btn-ghost':'btn-primary'} btn-sm" style="width:100%;justify-content:center;margin-top:12px" id="followBtn" onclick="toggleFollow('${escHtml(data.username)}')">${followData.following?'\u2713 Following':'+ Follow'}</button>`
+          }
         </div>
       </div>
       <div>
@@ -1239,7 +1344,40 @@ async function loadProfile(username){
               </div>
             </div>
           </div>`).join(''):'<p style="color:var(--muted)">No skills submitted yet.</p>'}
-        ${isMe?'<div id="editProfileSection" style="display:none;margin-top:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px"><h4 style="color:var(--text);margin-bottom:16px">Edit Profile</h4><div class="form-group"><label>Bio</label><textarea class="form-input" id="editBio" rows="3" maxlength="300" placeholder="Tell the community about yourself…"></textarea></div><div class="form-group"><label>GitHub Username</label><input class="form-input" id="editGithub" placeholder="your-github-username" type="text"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'editProfileSection\').style.display=\'none\'">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveProfile()">Save</button></div></div><div id="bookmarksSection" style="display:none;margin-top:24px"><h4 style="color:var(--text);margin-bottom:16px">🔖 My Bookmarks</h4><div id="bookmarksList"></div></div>':''}
+        ${isMe?`
+          <div id="editProfileSection" style="display:none;margin-top:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+            <h4 style="color:var(--text);margin-bottom:16px">Edit Profile</h4>
+            <div class="form-group"><label>Bio</label><textarea class="form-input" id="editBio" rows="3" maxlength="300" placeholder="Tell the community about yourself\u2026"></textarea></div>
+            <div class="form-group"><label>GitHub Username</label><input class="form-input" id="editGithub" placeholder="your-github-username" type="text"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('editProfileSection').style.display='none'">Cancel</button>
+              <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save</button>
+            </div>
+          </div>
+          <div id="notifPrefsSection" style="display:none;margin-top:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+            <h4 style="color:var(--text);margin-bottom:4px">\uD83D\uDD14 Notification Preferences</h4>
+            <p style="font-size:.85rem;margin-bottom:20px">Choose what you'd like to be notified about.</p>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
+                <input type="checkbox" id="notifNewSkills" style="accent-color:var(--accent);width:17px;height:17px;flex-shrink:0">
+                <div><div style="font-size:.9rem;color:var(--text);font-weight:600">New verified skills</div><div style="font-size:.8rem;color:var(--muted)">Get notified when new skills pass verification</div></div>
+              </label>
+              <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
+                <input type="checkbox" id="notifFollowedPosts" style="accent-color:var(--accent);width:17px;height:17px;flex-shrink:0">
+                <div><div style="font-size:.9rem;color:var(--text);font-weight:600">Followed developer updates</div><div style="font-size:.8rem;color:var(--muted)">When someone you follow publishes a skill</div></div>
+              </label>
+              <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
+                <input type="checkbox" id="notifReviewReplies" style="accent-color:var(--accent);width:17px;height:17px;flex-shrink:0">
+                <div><div style="font-size:.9rem;color:var(--text);font-weight:600">Review replies</div><div style="font-size:.8rem;color:var(--muted)">When someone responds to your review</div></div>
+              </label>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('notifPrefsSection').style.display='none'">Cancel</button>
+              <button class="btn btn-primary btn-sm" onclick="saveNotifPrefs()">Save Preferences</button>
+            </div>
+          </div>
+          <div id="bookmarksSection" style="display:none;margin-top:24px"><h4 style="color:var(--text);margin-bottom:16px">\uD83D\uDD16 My Bookmarks</h4><div id="bookmarksList"></div></div>
+        `:''}
       </div>`;
     if(isMe){
       document.getElementById('editBio').value=currentUser?.bio||'';
@@ -1251,6 +1389,46 @@ async function loadProfile(username){
 function showEditProfile(){
   const el=document.getElementById('editProfileSection');
   if(el)el.style.display=el.style.display==='none'?'':'none';
+}
+
+async function toggleFollow(username){
+  if(!currentUser){openAuthModal('login');return;}
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  const btn=document.getElementById('followBtn');
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  try{
+    const data=await fetch(API+'/api/users/'+encodeURIComponent(username)+'/follow',{method:'POST',headers:{Authorization:'Bearer '+tok}}).then(r=>r.json());
+    showNotif(data.following?'Following @'+username+' \u2713':'Unfollowed @'+username);
+    loadProfile(username);
+  }catch(e){if(btn){btn.disabled=false;btn.textContent='+ Follow';}showNotif('Error');}
+}
+
+async function showNotifPrefs(){
+  const sec=document.getElementById('notifPrefsSection');
+  if(!sec)return;
+  sec.style.display=sec.style.display==='none'?'':'none';
+  if(sec.style.display==='none')return;
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  try{
+    const prefs=await fetch(API+'/api/auth/notifications',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json());
+    document.getElementById('notifNewSkills').checked=prefs.new_skills!==false&&prefs.new_skills!==0;
+    document.getElementById('notifFollowedPosts').checked=prefs.followed_posts!==false&&prefs.followed_posts!==0;
+    document.getElementById('notifReviewReplies').checked=!!prefs.review_replies;
+  }catch(e){}
+}
+
+async function saveNotifPrefs(){
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  const body={
+    new_skills:document.getElementById('notifNewSkills').checked,
+    followed_posts:document.getElementById('notifFollowedPosts').checked,
+    review_replies:document.getElementById('notifReviewReplies').checked
+  };
+  try{
+    await fetch(API+'/api/auth/notifications',{method:'PATCH',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    showNotif('Notification preferences saved \u2713');
+    document.getElementById('notifPrefsSection').style.display='none';
+  }catch(e){showNotif('Error saving preferences');}
 }
 async function saveProfile(){
   if(!currentUser)return;
@@ -1293,7 +1471,92 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-initAuth().then(()=>routeByPath());
+// ── Leaderboard ──────────────────────────────────────────────────────────
+function showLeaderboard(){
+  showPage('leaderboard');
+  history.pushState(null,'','/leaderboard');
+  loadLeaderboard();
+}
+async function loadLeaderboard(){
+  const el=document.getElementById('leaderboardList');
+  el.innerHTML='<div style="color:var(--muted);padding:24px 0;text-align:center">Loading\u2026</div>';
+  try{
+    const rows=await fetch(API+'/api/leaderboard').then(r=>r.json());
+    if(!rows.length){el.innerHTML='<div style="color:var(--muted);padding:24px 0;text-align:center">No data yet.</div>';return;}
+    const medals=['🥇','🥈','🥉'];
+    el.innerHTML=rows.map((r,i)=>`
+      <div class="lb-row">
+        <div class="lb-rank">${medals[i]||'#'+(i+1)}</div>
+        <div class="lb-avatar" onclick="showProfile('${escHtml(r.author)}')">${r.author[0].toUpperCase()}</div>
+        <div class="lb-info">
+          <div class="lb-username" onclick="showProfile('${escHtml(r.author)}')">@${escHtml(r.author)}</div>
+          <div class="lb-meta">${r.skill_count} skill${r.skill_count!==1?'s':''} · ★ ${Number(r.avg_stars||0).toFixed(1)} avg · top score ${r.top_score||0}</div>
+        </div>
+        <div class="lb-right">
+          <div class="lb-installs">${r.total_installs>999?(r.total_installs/1000).toFixed(1)+'k':r.total_installs}</div>
+          <div class="lb-installs-sub">installs</div>
+        </div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:16px">Could not load leaderboard.</div>';}
+}
+
+// ── Following Feed ────────────────────────────────────────────────────────
+async function loadFeed(){
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  if(!tok||!currentUser)return;
+  try{
+    const skills=await fetch(API+'/api/feed',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json());
+    const sec=document.getElementById('feedSection');
+    const sc=document.getElementById('feedScroll');
+    const countEl=document.getElementById('feedCount');
+    if(!skills.length){sec.style.display='none';return;}
+    sec.style.display='';
+    if(countEl)countEl.textContent=skills.length+' new skill'+(skills.length!==1?'s':'');
+    const catEmoji={'productivity':'\uD83D\uDCCB','smart-home':'\uD83C\uDFE0','finance':'\uD83D\uDCB0','communication':'\uD83D\uDCAC','developer':'\u2699\uFE0F','ai':'\uD83E\uDD16','general':'\uD83D\uDCE6'};
+    sc.innerHTML=skills.map(s=>`
+      <div class="trend-card" style="width:200px" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})'>
+        <div class="trend-rank" style="color:var(--green)">@${escHtml(s.author)}</div>
+        <div class="trend-name">${catEmoji[s.category]||'\uD83D\uDCE6'} ${escHtml(s.name)}</div>
+        <div class="trend-desc">${escHtml(s.description||'')}</div>
+        <div class="trend-footer">
+          <span>★ ${Number(s.stars||0).toFixed(1)}</span>
+          <span class="trend-installs">\u2193 ${s.installs>999?(s.installs/1000).toFixed(1)+'k':s.installs}</span>
+        </div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// ── Similar Skills ────────────────────────────────────────────────────────
+async function loadSimilarSkills(skillId, category, skillName){
+  const sec=document.getElementById('similarSection');
+  const sc=document.getElementById('similarScroll');
+  if(!sec||!sc)return;
+  sec.style.display='none';
+  try{
+    const skills=await fetch(API+'/api/skills?category='+encodeURIComponent(category)).then(r=>r.json());
+    const similar=skills.filter(s=>s.id!==skillId&&s.name!==skillName).slice(0,8);
+    if(!similar.length)return;
+    sec.style.display='';
+    sc.innerHTML=similar.map(s=>`
+      <div class="similar-chip" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})'>
+        <div class="similar-chip-name">${escHtml(s.name)}</div>
+        <div class="similar-chip-meta">★ ${Number(s.stars||0).toFixed(1)} · \u2193 ${s.installs>999?(s.installs/1000).toFixed(1)+'k':s.installs}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// ── Welcome Onboarding ────────────────────────────────────────────────────
+function showWelcome(username){
+  const el=document.getElementById('welcomeTitle');
+  if(el)el.textContent='Welcome, @'+username+'! \uD83C\uDF89';
+  document.getElementById('welcomeModal').classList.add('open');
+}
+function closeWelcome(){
+  document.getElementById('welcomeModal').classList.remove('open');
+  localStorage.setItem('cv_welcomed','1');
+}
+
+initAuth().then(()=>{routeByPath();if(currentUser)loadFeed();});
 </script>
 </body>
 </html>
