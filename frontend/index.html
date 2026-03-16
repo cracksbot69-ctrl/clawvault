@@ -75,6 +75,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,15,0.8
 .badge-score-green{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 .badge-score-yellow{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
 .badge-score-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-gold{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35)}
+.badge-silver{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.3)}
+.badge-bronze{background:rgba(180,83,9,.1);color:#c2803a;border:1px solid rgba(180,83,9,.3)}
 .skill-desc{font-size:.88rem;color:var(--muted);margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .skill-footer{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted)}
 .skill-author{display:flex;align-items:center;gap:6px}
@@ -481,6 +484,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
           <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Scan Issues</div>
           <div id="modalIssues"></div>
         </div>
+        <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="shareSkill()">🔗 Share</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="reportSkill()">⚑ Report</button>
+        </div>
       </div>
 
       <!-- REVIEWS TAB -->
@@ -619,13 +626,14 @@ async function loadSkills(){
 }
 
 function scoreBadge(s){if(!s)return'';const c=s>=90?'badge-score-green':s>=70?'badge-score-yellow':'badge-score-red';return`<span class="badge-small ${c}">${s}</span>`;}
+function shieldBadge(s){if(!s)return'';if(s>=95)return'<span class="badge-small badge-gold">🛡 Gold</span>';if(s>=85)return'<span class="badge-small badge-silver">🛡 Silver</span>';if(s>=70)return'<span class="badge-small badge-bronze">🛡 Bronze</span>';return'';}
 
 function renderSkills(skills){
   const grid=document.getElementById('skillsGrid');
   if(!skills.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">No skills found</div>';return;}
   grid.innerHTML=skills.map(s=>`
     <div class="skill-card ${s.verified?'verified':''} ${s.featured?'featured':''}" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})'>
-      <div class="skill-header"><div class="skill-name">@clawvault/${s.name}</div><div class="skill-badges">${s.verified?'<span class="badge-small badge-verified">✓ Verified</span>':''}${s.featured?'<span class="badge-small badge-featured">⭐ Featured</span>':''}${scoreBadge(s.score)}</div></div>
+      <div class="skill-header"><div class="skill-name">@clawvault/${s.name}</div><div class="skill-badges">${s.verified?'<span class="badge-small badge-verified">✓ Verified</span>':''}${s.featured?'<span class="badge-small badge-featured">⭐ Featured</span>':''}${shieldBadge(s.score)}</div></div>
       <div class="skill-desc">${s.description||''}</div>
       <div class="skill-footer">
         <div class="skill-author"><div class="skill-avatar">${(s.author||'?')[0].toUpperCase()}</div>@${s.author||'unknown'}</div>
@@ -672,7 +680,7 @@ function openSkillModal(jsonStr){
   document.getElementById('modalInstalls').textContent=s.installs>999?(s.installs/1000).toFixed(1)+'k':(s.installs||0);
   const sc=s.score||0,scoreEl=document.getElementById('modalScore');
   scoreEl.textContent=sc||'—';scoreEl.style.color=sc>=90?'var(--green)':sc>=70?'var(--yellow)':'var(--red)';
-  document.getElementById('modalBadges').innerHTML=(s.verified?'<span class="badge-small badge-verified">✓ Verified</span>':'')+(s.featured?'<span class="badge-small badge-featured">⭐ Featured</span>':'');
+  document.getElementById('modalBadges').innerHTML=(s.verified?'<span class="badge-small badge-verified">✓ Verified</span>':'')+(s.featured?'<span class="badge-small badge-featured">⭐ Featured</span>':'')+shieldBadge(s.score);
   document.getElementById('modalCmd').textContent='openclaw skill install @clawvault/'+s.name;
   const gh=document.getElementById('modalGithub');gh.href=s.github_url||'#';gh.textContent=s.github_url||'N/A';
   let issues=[];try{issues=typeof s.scan_issues==='string'?JSON.parse(s.scan_issues):(s.scan_issues||[]);}catch(e){}
@@ -752,6 +760,52 @@ async function submitReview(){
 }
 
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function shareSkill(){
+  const url=window.location.href;
+  navigator.clipboard.writeText(url).then(()=>showNotif('🔗 Link copied!'));
+}
+
+async function reportSkill(){
+  if(!currentModalSkillId)return;
+  const reason=prompt('Why are you reporting this skill?\n(e.g. malware, spam, wrong category)');
+  if(!reason?.trim())return;
+  try{
+    await fetch(API+'/api/skills/'+currentModalSkillId+'/report',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({reason:reason.trim()})
+    });
+    showNotif('Report submitted. Thank you!');
+  }catch(e){showNotif('Could not submit report');}
+}
+
+// ── Animated Terminal ───────────────────────────────────────────────────────
+function animateTerminal(){
+  const el=document.querySelector('.terminal-body');
+  if(!el||el.dataset.animated)return;
+  el.dataset.animated='1';
+  const lines=el.innerHTML.split('<br>');
+  el.innerHTML='';
+  let li=0;
+  function nextLine(){
+    if(li>=lines.length)return;
+    const div=document.createElement('span');
+    div.innerHTML=lines[li]+'<br>';
+    div.style.opacity='0';
+    div.style.transition='opacity .2s';
+    el.appendChild(div);
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>{div.style.opacity='1';});});
+    li++;
+    setTimeout(nextLine,110);
+  }
+  nextLine();
+}
+// Trigger when security section is visible
+const secObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)animateTerminal();});},{threshold:.3});
+document.addEventListener('DOMContentLoaded',()=>{
+  const sec=document.querySelector('.security-terminal');
+  if(sec)secObs.observe(sec);
+});
 
 async function submitSkill(){
   const btn=document.getElementById('submitBtn'),err=document.getElementById('submitError');

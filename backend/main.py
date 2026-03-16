@@ -318,6 +318,18 @@ def post_review(skill_id: str, body: ReviewBody):
         c.commit()
     return {"ok": True}
 
+class ReportBody(BaseModel):
+    reason: str = ""
+
+@app.post("/api/skills/{skill_id}/report")
+def report_skill(skill_id: str, body: ReportBody):
+    """Log a community report for a skill (stored for admin review)."""
+    with db() as c:
+        c.execute("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, skill_id TEXT, reason TEXT, created_at TEXT DEFAULT (datetime('now')))")
+        c.execute("INSERT INTO reports(skill_id,reason) VALUES(?,?)", (skill_id, (body.reason or "")[:300]))
+        c.commit()
+    return {"ok": True}
+
 @app.get("/api/categories")
 def categories():
     with db() as c:
