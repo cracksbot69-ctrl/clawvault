@@ -269,6 +269,26 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
     </div>
   </div>
 </section>
+<!-- Logged-in dashboard banner (hidden by default) -->
+<div id="userDashBanner" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 0">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar-ring" style="pointer-events:none;cursor:default" id="dashAvatar">?</div>
+        <div>
+          <div style="font-weight:700;font-size:.95rem;color:var(--text)" id="dashUsername">Loading…</div>
+          <div style="font-size:.78rem;color:var(--muted)" id="dashStats">—</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="showMyBookmarks2()">🔖 My Bookmarks</button>
+        <button class="btn btn-ghost btn-sm" onclick="showProfile(currentUser?.username||'')">👤 Profile</button>
+        <button class="btn btn-primary btn-sm" onclick="showSubmit()">+ Submit Skill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <section class="section" id="features">
   <div class="container">
     <h2>Why ClawVault?</h2>
@@ -1078,9 +1098,37 @@ function updateNavAuth(){
   if(!area)return;
   if(currentUser){
     area.innerHTML=`<button class="avatar-ring" onclick="showProfile('${currentUser.username}')" title="My Profile">${currentUser.username[0].toUpperCase()}</button>`;
+    updateDashboard();
   }else{
     area.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="openAuthModal('login')">Login</button><button class="btn btn-primary btn-sm" onclick="openAuthModal('register')" style="margin-left:6px">Register</button>`;
+    const banner=document.getElementById('userDashBanner');
+    if(banner)banner.style.display='none';
   }
+}
+
+async function updateDashboard(){
+  const banner=document.getElementById('userDashBanner');
+  if(!banner||!currentUser)return;
+  banner.style.display='';
+  document.getElementById('dashAvatar').textContent=currentUser.username[0].toUpperCase();
+  document.getElementById('dashUsername').textContent='@'+currentUser.username;
+  // Fetch fresh stats
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  try{
+    const me=await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json());
+    const s=me.stats||{};
+    document.getElementById('dashStats').textContent=`${s.submissions||0} skills · ${s.bookmarks||0} bookmarks · ${s.reviews||0} reviews`;
+  }catch(e){}
+}
+
+async function showMyBookmarks2(){
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  if(!tok){openAuthModal('login');return;}
+  const skills=await fetch(API+'/api/bookmarks',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json()).catch(()=>[]);
+  if(!skills.length){showNotif('No bookmarks yet');return;}
+  // Open first bookmarked skill modal
+  openSkillModal(JSON.stringify(JSON.stringify(skills[0])));
+  showNotif(`You have ${skills.length} bookmark${skills.length>1?'s':''}`);
 }
 
 async function initAuth(){
