@@ -68,6 +68,14 @@ def init_db():
             issues     TEXT,
             scanned_at TEXT DEFAULT (datetime('now'))
         );
+        CREATE TABLE IF NOT EXISTS reviews (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            skill_id   TEXT NOT NULL,
+            author     TEXT DEFAULT 'Anonymous',
+            rating     INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+            comment    TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
         """)
         # Demo seeds
         seeds = [
@@ -242,6 +250,54 @@ def stats():
             "pending_review":   c.execute("SELECT COUNT(*) FROM skills WHERE status IN ('pending','review','scanning')").fetchone()[0],
             "failed_scans":     c.execute("SELECT COUNT(*) FROM skills WHERE status='failed'").fetchone()[0],
         }
+
+@app.get("/api/trending")
+def trending():
+    """Top 6 skills by installs in last 7 days, falls back to all-time."""
+    with db() as c:
+        rows = c.execute("""
+            SELECT s.*, COUNT(i.skill_id) as recent_installs
+            FROM skills s
+            LEFT JOIN installs i ON i.skill_id = s.id
+              AND i.ts > datetime('now', '-7 days')
+            WHERE s.status='verified'
+            GROUP BY s.id
+            ORDER BY recent_installs DESC, s.installs DESC
+            LIMIT 6
+        """).fetchall()
+        return [dict(r) for r in rows]
+
+@app.get("/api/skills/{skill_id}/reviews")
+def get_reviews(skill_id: str):
+    with db() as c:
+        rows = c.execute(
+            "SELECT * FROM reviews WHERE skill_id=? ORDER BY created_at DESC LIMIT 20",
+            (skill_id,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+class ReviewBody(BaseModel):
+    author: str = "Anonymous"
+    rating: int
+    comment: str = ""
+
+@app.post("/api/skills/{skill_id}/review")
+def post_review(skill_id: str, body: ReviewBody):
+    if not 1 <= body.rating <= 5:
+        raise HTTPException(422, "Rating must be 1-5")
+    with db() as c:
+        row = c.execute("SELECT id FROM skills WHERE id=? AND status='verified'", (skill_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, "Skill not found")
+        c.execute(
+            "INSERT INTO reviews(skill_id,author,rating,comment) VALUES(?,?,?,?)",
+            (skill_id, (body.author or "Anonymous")[:50], body.rating, (body.comment or "")[:500])
+        )
+        # Recalculate avg stars
+        avg = c.execute("SELECT AVG(rating) FROM reviews WHERE skill_id=?", (skill_id,)).fetchone()[0]
+        c.execute("UPDATE skills SET stars=ROUND(?,1) WHERE id=?", (avg or 0, skill_id))
+        c.commit()
+    return {"ok": True}
 
 @app.get("/api/categories")
 def categories():

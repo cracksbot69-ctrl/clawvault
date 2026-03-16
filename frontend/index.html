@@ -152,6 +152,48 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
 .reject-input:focus{border-color:var(--red)}
 .admin-login-wrap{max-width:400px;margin:80px auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px}
 @media(max-width:768px){nav .nav-links a:not(:last-child){display:none}.hero-stats{gap:24px}.skills-controls{flex-direction:column;align-items:stretch}}
+
+/* ── Trending ── */
+.trending-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.trending-label{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.12em}
+.trending-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
+.trending-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none;margin:0 -24px;padding-left:24px;padding-right:24px}
+.trending-scroll::-webkit-scrollbar{display:none}
+.trend-card{flex-shrink:0;width:220px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.trend-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,var(--accent),#818cf8)}
+.trend-card:hover{border-color:rgba(124,58,237,.5);transform:translateY(-2px)}
+.trend-rank{font-size:.7rem;font-weight:800;color:var(--accent2);letter-spacing:.1em;margin-bottom:4px}
+.trend-name{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-desc{font-size:.75rem;color:var(--muted);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.trend-footer{display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.trend-installs{color:var(--green);font-weight:600}
+
+/* ── Star Rating ── */
+.star-rating{display:flex;gap:4px;cursor:pointer;user-select:none}
+.star{font-size:1.4rem;color:rgba(255,255,255,.2);transition:.1s;line-height:1}
+.star.filled{color:var(--yellow)}
+.star.hover{color:var(--yellow);opacity:.7}
+
+/* ── Reviews ── */
+.modal-tabs{display:flex;border-bottom:1px solid var(--border);margin:0 -24px 20px;padding:0 24px}
+.modal-tab{padding:10px 16px;font-size:.88rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;margin-bottom:-1px}
+.modal-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.review-form{background:var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.review-form label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
+.review-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.88rem;outline:none;transition:.15s;font-family:inherit;resize:vertical}
+.review-input:focus{border-color:var(--accent)}
+.review-input::placeholder{color:var(--muted)}
+.review-name-input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:.88rem;outline:none;width:160px;transition:.15s}
+.review-name-input:focus{border-color:var(--accent)}
+.review-name-input::placeholder{color:var(--muted)}
+.review-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.review-item:last-child{border-bottom:none}
+.review-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.review-author{font-size:.85rem;font-weight:600;color:var(--text)}
+.review-date{font-size:.75rem;color:var(--muted)}
+.review-stars{font-size:.85rem;color:var(--yellow);letter-spacing:1px}
+.review-text{font-size:.85rem;color:var(--muted);line-height:1.6}
+.no-reviews{text-align:center;color:var(--muted);font-size:.88rem;padding:24px 0}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -251,6 +293,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
     <h2>Browse Verified Skills</h2>
     <p>All skills scanned, signed, and community-approved.</p>
     <br>
+    <!-- Trending Section -->
+    <div id="trendingSection" style="margin-bottom:40px;display:none">
+      <div class="trending-header">
+        <div class="trending-label"><span class="trending-dot"></span>Trending This Week</div>
+        <span style="font-size:.78rem;color:var(--muted)">Most installed in 7 days</span>
+      </div>
+      <div class="trending-scroll" id="trendingScroll"></div>
+    </div>
+
     <div class="search-bar">
       <span class="search-icon">🔍</span>
       <input type="text" placeholder="Search skills..." id="searchInput" oninput="filterSkills()">
@@ -394,25 +445,59 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
       </div>
       <button class="modal-close" onclick="document.getElementById('skillModal').classList.remove('open')">×</button>
     </div>
-    <div class="modal-body">
-      <p style="margin-bottom:20px" id="modalDesc"></p>
-      <div style="display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap">
-        <div><div class="modal-score" id="modalScore"></div><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Security Score</div></div>
-        <div><div style="font-size:1.4rem;font-weight:800;color:var(--yellow)" id="modalStars"></div><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Rating</div></div>
-        <div><div style="font-size:1.4rem;font-weight:800;color:var(--text)" id="modalInstalls"></div><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Installs</div></div>
-        <div><div style="font-size:1.1rem;font-weight:700;color:var(--accent2)" id="modalVersion"></div><div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Version</div></div>
+    <div class="modal-body" style="padding-top:0">
+      <!-- Tabs -->
+      <div class="modal-tabs">
+        <div class="modal-tab active" onclick="switchModalTab('info',this)">Info</div>
+        <div class="modal-tab" onclick="switchModalTab('reviews',this)">Reviews <span id="reviewCountBadge" style="font-size:.72rem;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:4px">0</span></div>
       </div>
-      <div style="margin-bottom:12px">
-        <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px">INSTALL COMMAND (click to copy)</div>
-        <div class="modal-cmd" id="modalCmd" onclick="copyModalCmd()"></div>
+
+      <!-- INFO TAB -->
+      <div id="modalTabInfo">
+        <p style="margin-bottom:20px" id="modalDesc"></p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:16px;margin-bottom:20px">
+          <div style="text-align:center"><div class="modal-score" id="modalScore"></div><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Security</div></div>
+          <div style="text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--yellow)" id="modalStars"></div><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Rating</div></div>
+          <div style="text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--text)" id="modalInstalls"></div><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Installs</div></div>
+          <div style="text-align:center"><div style="font-size:1rem;font-weight:700;color:var(--accent2)" id="modalVersion"></div><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Version</div></div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Install (click to copy)</div>
+          <div class="modal-cmd" id="modalCmd" onclick="copyModalCmd()"></div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">GitHub</div>
+          <a id="modalGithub" href="#" target="_blank" style="color:var(--accent2);font-size:.88rem;word-break:break-all"></a>
+        </div>
+        <div id="modalIssuesSection" style="margin-top:16px;display:none">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Scan Issues</div>
+          <div id="modalIssues"></div>
+        </div>
       </div>
-      <div style="margin-bottom:12px">
-        <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px">GITHUB</div>
-        <a id="modalGithub" href="#" target="_blank" style="color:var(--accent2);font-size:.9rem"></a>
-      </div>
-      <div id="modalIssuesSection" style="margin-top:20px;display:none">
-        <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Scan Issues</div>
-        <div id="modalIssues"></div>
+
+      <!-- REVIEWS TAB -->
+      <div id="modalTabReviews" style="display:none">
+        <!-- Submit review -->
+        <div class="review-form">
+          <label>Your Rating</label>
+          <div class="star-rating" id="ratingWidget" style="margin-bottom:12px">
+            <span class="star" data-v="1">★</span>
+            <span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span>
+            <span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+            <input type="text" class="review-name-input" id="reviewAuthor" placeholder="Your name (optional)" maxlength="40">
+          </div>
+          <label>Comment (optional)</label>
+          <textarea class="review-input" id="reviewComment" placeholder="What do you think of this skill?" rows="3" maxlength="500"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-primary btn-sm" onclick="submitReview()">Submit Review</button>
+          </div>
+        </div>
+        <!-- Reviews list -->
+        <div id="reviewsList"><div class="no-reviews">Loading reviews…</div></div>
       </div>
     </div>
   </div>
@@ -423,6 +508,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
 <script>
 const API='';
 let currentCat='all',currentSort='installs',allSkills=[],statusPoll=null,adminToken=localStorage.getItem('adminToken')||'',adminRefreshTimer=null;
+let currentModalSkillId=null, selectedRating=0;
 
 function showPage(p){
   document.getElementById('mainSite').style.display=p==='main'?'':'none';
@@ -447,6 +533,26 @@ function routeByPath(){
   if(p.startsWith('/status/')){showStatus(p.replace('/status/',''));return;}
   if(p==='/submit'){showSubmit();return;}
   showPage('main');loadSkills();
+}
+
+async function loadTrending(){
+  try{
+    const data=await fetch(API+'/api/trending').then(r=>r.json());
+    const sc=document.getElementById('trendingScroll');
+    if(!data.length){document.getElementById('trendingSection').style.display='none';return;}
+    document.getElementById('trendingSection').style.display='';
+    const catEmoji={'productivity':'📋','smart-home':'🏠','finance':'💰','communication':'💬','developer':'⚙️','ai':'🤖','general':'📦'};
+    sc.innerHTML=data.map((s,i)=>`
+      <div class="trend-card" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})'>
+        <div class="trend-rank">#${i+1} TRENDING</div>
+        <div class="trend-name">${catEmoji[s.category]||'📦'} ${s.name}</div>
+        <div class="trend-desc">${s.description||''}</div>
+        <div class="trend-footer">
+          <span>★ ${Number(s.stars||0).toFixed(1)}</span>
+          <span class="trend-installs">↓ ${s.installs>999?(s.installs/1000).toFixed(1)+'k':s.installs}</span>
+        </div>
+      </div>`).join('');
+  }catch(e){document.getElementById('trendingSection').style.display='none';}
 }
 
 async function loadSkills(){
@@ -475,6 +581,7 @@ async function loadSkills(){
     ];
   }
   filterSkills();
+  loadTrending();
 }
 
 function scoreBadge(s){if(!s)return'';const c=s>=90?'badge-score-green':s>=70?'badge-score-yellow':'badge-score-red';return`<span class="badge-small ${c}">${s}</span>`;}
@@ -502,8 +609,27 @@ function filterSkills(){
 function filterCat(cat,btn){currentCat=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');filterSkills();}
 function changeSortAndReload(){currentSort=document.getElementById('sortSelect').value;loadSkills();}
 
+function switchModalTab(tab, el){
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('modalTabInfo').style.display=tab==='info'?'':'none';
+  document.getElementById('modalTabReviews').style.display=tab==='reviews'?'':'none';
+  if(tab==='reviews'&&currentModalSkillId) loadReviews(currentModalSkillId);
+}
+
 function openSkillModal(jsonStr){
   const s=JSON.parse(jsonStr);
+  currentModalSkillId=s.id;
+  selectedRating=0;
+  // Switch to info tab
+  document.querySelectorAll('.modal-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  document.getElementById('modalTabInfo').style.display='';
+  document.getElementById('modalTabReviews').style.display='none';
+  // Reset review form
+  document.getElementById('reviewComment').value='';
+  document.getElementById('reviewAuthor').value='';
+  updateStarWidget(0);
+
   document.getElementById('modalName').textContent='@clawvault/'+s.name;
   document.getElementById('modalAuthor').textContent='by @'+(s.author||'unknown')+' · '+(s.category||'');
   document.getElementById('modalDesc').textContent=s.description||'';
@@ -520,9 +646,72 @@ function openSkillModal(jsonStr){
   if(issues.length){sec.style.display='';document.getElementById('modalIssues').innerHTML=issues.map(i=>`<div class="issue-item"><span style="color:${i.level==='HIGH'?'var(--red)':i.level==='MEDIUM'?'var(--yellow)':'var(--accent2)'};font-weight:700;font-size:.75rem;flex-shrink:0">${i.level||'INFO'}</span><span style="color:var(--muted)">${i.file||''} — ${i.msg||i.message||''}</span></div>`).join('');}
   else sec.style.display='none';
   document.getElementById('skillModal').classList.add('open');
+  // Pre-load review count
+  fetch(API+'/api/skills/'+s.id+'/reviews').then(r=>r.json()).then(reviews=>{
+    document.getElementById('reviewCountBadge').textContent=reviews.length||0;
+  }).catch(()=>{});
 }
 function closeModal(e){if(e.target===document.getElementById('skillModal'))document.getElementById('skillModal').classList.remove('open');}
 function copyModalCmd(){const c=document.getElementById('modalCmd').textContent;navigator.clipboard.writeText(c);showNotif('✓ Copied: '+c);}
+
+// ── Star Rating Widget ──────────────────────────────────────────────────────
+function updateStarWidget(val){
+  selectedRating=val;
+  document.querySelectorAll('#ratingWidget .star').forEach(s=>{
+    const v=parseInt(s.dataset.v);
+    s.classList.toggle('filled',v<=val);
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#ratingWidget .star').forEach(star=>{
+    star.addEventListener('mouseover',()=>{ document.querySelectorAll('#ratingWidget .star').forEach(s=>s.classList.toggle('hover',parseInt(s.dataset.v)<=parseInt(star.dataset.v))); });
+    star.addEventListener('mouseout',()=>{ document.querySelectorAll('#ratingWidget .star').forEach(s=>s.classList.remove('hover')); });
+    star.addEventListener('click',()=>{ updateStarWidget(parseInt(star.dataset.v)); });
+  });
+});
+
+async function loadReviews(skillId){
+  document.getElementById('reviewsList').innerHTML='<div class="no-reviews">Loading…</div>';
+  try{
+    const reviews=await fetch(API+'/api/skills/'+skillId+'/reviews').then(r=>r.json());
+    document.getElementById('reviewCountBadge').textContent=reviews.length||0;
+    if(!reviews.length){document.getElementById('reviewsList').innerHTML='<div class="no-reviews">No reviews yet. Be the first!</div>';return;}
+    document.getElementById('reviewsList').innerHTML=reviews.map(r=>`
+      <div class="review-item">
+        <div class="review-item-header">
+          <div>
+            <span class="review-author">${escHtml(r.author||'Anonymous')}</span>
+            <span class="review-stars" style="margin-left:8px">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+          </div>
+          <span class="review-date">${r.created_at?r.created_at.slice(0,10):''}</span>
+        </div>
+        ${r.comment?`<div class="review-text">${escHtml(r.comment)}</div>`:''}
+      </div>`).join('');
+  }catch(e){document.getElementById('reviewsList').innerHTML='<div class="no-reviews">Could not load reviews.</div>';}
+}
+
+async function submitReview(){
+  if(!currentModalSkillId){showNotif('No skill selected');return;}
+  if(!selectedRating){showNotif('Please select a rating first');return;}
+  const author=document.getElementById('reviewAuthor').value.trim()||'Anonymous';
+  const comment=document.getElementById('reviewComment').value.trim();
+  try{
+    const res=await fetch(API+'/api/skills/'+currentModalSkillId+'/review',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({author,rating:selectedRating,comment})
+    });
+    if(!res.ok)throw new Error(await res.text());
+    showNotif('✓ Review submitted!');
+    document.getElementById('reviewComment').value='';
+    document.getElementById('reviewAuthor').value='';
+    updateStarWidget(0);
+    await loadReviews(currentModalSkillId);
+    // Refresh skills to update star count
+    await loadSkills();
+  }catch(e){showNotif('Error: '+(e.message||'Failed'));}
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 async function submitSkill(){
   const btn=document.getElementById('submitBtn'),err=document.getElementById('submitError');
