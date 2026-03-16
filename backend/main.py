@@ -2,7 +2,7 @@
 ClawVault Backend — production-ready
 FastAPI, SQLite, GitHub API verification, auto-scanner, admin panel
 """
-import sqlite3, json, os, sys, hashlib, tempfile, subprocess, secrets
+import sqlite3, json, os, sys, hashlib, tempfile, subprocess, secrets, re
 from pathlib import Path
 from datetime import datetime
 import urllib.request, urllib.error
@@ -72,9 +72,27 @@ def init_db():
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             skill_id   TEXT NOT NULL,
             author     TEXT DEFAULT 'Anonymous',
+            user_id    TEXT DEFAULT NULL,
             rating     INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
             comment    TEXT DEFAULT '',
             created_at TEXT DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS users (
+            id          TEXT PRIMARY KEY,
+            username    TEXT NOT NULL UNIQUE,
+            email       TEXT NOT NULL UNIQUE,
+            password    TEXT NOT NULL,
+            github      TEXT DEFAULT '',
+            bio         TEXT DEFAULT '',
+            token       TEXT NOT NULL UNIQUE,
+            role        TEXT DEFAULT 'user',
+            created_at  TEXT DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS bookmarks (
+            user_id  TEXT NOT NULL,
+            skill_id TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY(user_id, skill_id)
         );
         """)
         # Demo seeds
@@ -99,6 +117,28 @@ def init_db():
 init_db()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+_AUTH_SECRET = os.getenv("AUTH_SECRET", secrets.token_hex(16))
+
+def hash_password(pw: str) -> str:
+    return hashlib.sha256((pw + _AUTH_SECRET).encode()).hexdigest()
+
+def make_token(user_id: str) -> str:
+    return hashlib.sha256((user_id + _AUTH_SECRET + secrets.token_hex(8)).encode()).hexdigest()
+
+def get_user_by_token(token: str | None):
+    if not token or not token.startswith("Bearer "):
+        return None
+    tok = token[7:]
+    with db() as c:
+        row = c.execute("SELECT * FROM users WHERE token=?", (tok,)).fetchone()
+        return dict(row) if row else None
+
+def require_user(authorization: str = Header(None)):
+    user = get_user_by_token(authorization)
+    if not user:
+        raise HTTPException(401, "Login required")
+    return user
+
 def require_admin(authorization: str = Header(None)):
     if authorization != f"Bearer {ADMIN_TOKEN}":
         raise HTTPException(403, "Admin token required")
@@ -258,6 +298,127 @@ def stats():
             "open_reports":     reports_count,
         }
 
+# ── Auth Routes ───────────────────────────────────────────────────────────────
+
+class RegisterBody(BaseModel):
+    username: str
+    email:    str
+    password: str
+    github:   str = ""
+
+class LoginBody(BaseModel):
+    login:    str  # username or email
+    password: str
+
+class ProfileUpdateBody(BaseModel):
+    bio:    str = ""
+    github: str = ""
+
+@app.post("/api/auth/register")
+def register(body: RegisterBody):
+    username = body.username.strip().lower()
+    email    = body.email.strip().lower()
+    if not re.match(r'^[a-z0-9_-]{3,30}$', username):
+        raise HTTPException(422, "Username must be 3-30 chars: letters, numbers, - or _")
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        raise HTTPException(422, "Invalid email address")
+    if len(body.password) < 6:
+        raise HTTPException(422, "Password must be at least 6 characters")
+    user_id = "user-" + secrets.token_hex(8)
+    token   = make_token(user_id)
+    try:
+        with db() as c:
+            c.execute(
+                "INSERT INTO users(id,username,email,password,github,token) VALUES(?,?,?,?,?,?)",
+                (user_id, username, email, hash_password(body.password), body.github.strip(), token)
+            )
+            c.commit()
+    except sqlite3.IntegrityError as e:
+        if "username" in str(e):
+            raise HTTPException(409, "Username already taken")
+        raise HTTPException(409, "Email already registered")
+    return {"token": token, "username": username, "id": user_id}
+
+@app.post("/api/auth/login")
+def login(body: LoginBody):
+    login = body.login.strip().lower()
+    with db() as c:
+        row = c.execute(
+            "SELECT * FROM users WHERE username=? OR email=?", (login, login)
+        ).fetchone()
+        if not row or dict(row)["password"] != hash_password(body.password):
+            raise HTTPException(401, "Invalid credentials")
+        user = dict(row)
+        return {"token": user["token"], "username": user["username"], "id": user["id"], "github": user["github"], "bio": user["bio"]}
+
+@app.get("/api/auth/me")
+def me(authorization: str = Header(None)):
+    user = get_user_by_token(authorization)
+    if not user:
+        raise HTTPException(401, "Not logged in")
+    with db() as c:
+        submissions = c.execute("SELECT COUNT(*) FROM skills WHERE author=?", (user["username"],)).fetchone()[0]
+        bookmarks   = c.execute("SELECT COUNT(*) FROM bookmarks WHERE user_id=?", (user["id"],)).fetchone()[0]
+        reviews_cnt = c.execute("SELECT COUNT(*) FROM reviews WHERE user_id=?", (user["id"],)).fetchone()[0]
+    return {**user, "password": None, "token": None,
+            "stats": {"submissions": submissions, "bookmarks": bookmarks, "reviews": reviews_cnt}}
+
+@app.patch("/api/auth/profile")
+def update_profile(body: ProfileUpdateBody, authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        c.execute("UPDATE users SET bio=?, github=? WHERE id=?",
+                  (body.bio[:300], body.github[:60], user["id"]))
+        c.commit()
+    return {"ok": True}
+
+@app.get("/api/users/{username}")
+def public_profile(username: str):
+    with db() as c:
+        row = c.execute("SELECT id,username,github,bio,created_at FROM users WHERE username=?", (username.lower(),)).fetchone()
+        if not row:
+            raise HTTPException(404, "User not found")
+        user = dict(row)
+        skills = c.execute("SELECT id,name,description,score,stars,installs,status FROM skills WHERE author=? ORDER BY created_at DESC", (username,)).fetchall()
+        user["skills"] = [dict(s) for s in skills]
+        return user
+
+# ── Bookmarks ─────────────────────────────────────────────────────────────────
+
+@app.post("/api/bookmarks/{skill_id}")
+def bookmark_skill(skill_id: str, authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        try:
+            c.execute("INSERT INTO bookmarks(user_id,skill_id) VALUES(?,?)", (user["id"], skill_id))
+            c.commit()
+            return {"ok": True, "bookmarked": True}
+        except sqlite3.IntegrityError:
+            c.execute("DELETE FROM bookmarks WHERE user_id=? AND skill_id=?", (user["id"], skill_id))
+            c.commit()
+            return {"ok": True, "bookmarked": False}
+
+@app.get("/api/bookmarks")
+def my_bookmarks(authorization: str = Header(None)):
+    user = require_user(authorization)
+    with db() as c:
+        rows = c.execute("""
+            SELECT s.* FROM skills s
+            JOIN bookmarks b ON b.skill_id = s.id
+            WHERE b.user_id=?
+            ORDER BY b.created_at DESC
+        """, (user["id"],)).fetchall()
+        return [dict(r) for r in rows]
+
+@app.get("/api/bookmarks/check/{skill_id}")
+def check_bookmark(skill_id: str, authorization: str = Header(None)):
+    user = get_user_by_token(authorization)
+    if not user:
+        return {"bookmarked": False}
+    with db() as c:
+        row = c.execute("SELECT 1 FROM bookmarks WHERE user_id=? AND skill_id=?", (user["id"], skill_id)).fetchone()
+        return {"bookmarked": bool(row)}
+
 @app.get("/api/new")
 def new_skills(limit: int = 6):
     """Most recently verified skills."""
@@ -400,6 +561,35 @@ def admin_rescan(skill_id: str, bg: BackgroundTasks, authorization: str = Header
         c.commit()
     bg.add_task(run_scan_background, skill_id, row["github_url"])
     return {"ok": True, "message": "Rescan started"}
+
+class ChangelogEntry(BaseModel):
+    version:  str
+    changes:  str
+    author:   str = ""
+
+@app.post("/api/skills/{skill_id}/changelog")
+def add_changelog(skill_id: str, body: ChangelogEntry, authorization: str = Header(None)):
+    require_admin(authorization)
+    with db() as c:
+        c.execute("CREATE TABLE IF NOT EXISTS changelog (id INTEGER PRIMARY KEY AUTOINCREMENT, skill_id TEXT, version TEXT, changes TEXT, author TEXT, created_at TEXT DEFAULT (datetime('now')))")
+        c.execute("INSERT INTO changelog(skill_id,version,changes,author) VALUES(?,?,?,?)",
+                  (skill_id, body.version[:20], body.changes[:1000], body.author[:60]))
+        # Also update skill version
+        c.execute("UPDATE skills SET version=?, updated_at=datetime('now') WHERE id=?", (body.version, skill_id))
+        c.commit()
+    return {"ok": True}
+
+@app.get("/api/skills/{skill_id}/changelog")
+def get_changelog(skill_id: str):
+    with db() as c:
+        try:
+            rows = c.execute(
+                "SELECT * FROM changelog WHERE skill_id=? ORDER BY created_at DESC LIMIT 10",
+                (skill_id,)
+            ).fetchall()
+            return [dict(r) for r in rows]
+        except Exception:
+            return []
 
 @app.get("/api/skill-template")
 def skill_template():

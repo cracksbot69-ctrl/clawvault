@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClawVault — Trusted OpenClaw Skills</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ClawVault">
+<meta property="og:title" content="ClawVault — Trusted OpenClaw Skills">
+<meta property="og:description" content="Every skill scanned, every author verified. The secure OpenClaw marketplace.">
+<meta property="og:type" content="website">
 <style>
 :root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--border:#2a2a3a;--accent:#7c3aed;--accent2:#a78bfa;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--text:#e2e8f0;--muted:#64748b;--radius:12px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -156,6 +163,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
 .admin-login-wrap{max-width:400px;margin:80px auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px}
 @media(max-width:768px){nav .nav-links a:not(:last-child){display:none}.hero-stats{gap:24px}.skills-controls{flex-direction:column;align-items:stretch}}
 
+/* ── Auth ── */
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px}
+.auth-modal.open{display:flex}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;overflow:hidden}
+.auth-header{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-top:16px}
+.auth-tab{flex:1;text-align:center;padding:10px;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.auth-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.auth-body{padding:24px}
+.avatar-ring{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#818cf8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;color:#fff;cursor:pointer;border:none;flex-shrink:0}
+/* Profile page */
+.profile-grid{display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:start}
+@media(max-width:768px){.profile-grid{grid-template-columns:1fr}}
+.profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:sticky;top:90px}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#818cf8);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;margin:0 auto 16px}
+.profile-username{text-align:center;font-size:1.2rem;font-weight:800;color:var(--text)}
+.profile-stats{display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.profile-stat{flex:1;text-align:center;padding:12px 8px;border-right:1px solid var(--border)}
+.profile-stat:last-child{border-right:none}
+.profile-stat-n{font-size:1.2rem;font-weight:800;color:var(--text)}
+.profile-stat-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 /* ── Trending ── */
 .trending-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .trending-label{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.12em}
@@ -211,6 +239,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
       <a onclick="goHome();setTimeout(()=>document.getElementById('pricing').scrollIntoView({behavior:'smooth'}),50)">Pricing</a>
       <a href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw</a>
       <a onclick="showSubmit()" class="btn btn-primary">Submit Skill</a>
+      <div id="navAuthArea"></div>
     </div>
   </div>
 </nav>
@@ -468,9 +497,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
       <div class="modal-tabs">
         <div class="modal-tab active" onclick="switchModalTab('info',this)">Info</div>
         <div class="modal-tab" onclick="switchModalTab('reviews',this)">Reviews <span id="reviewCountBadge" style="font-size:.72rem;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:4px">0</span></div>
+      <div class="modal-tab" onclick="switchModalTab('changelog',this)">Changelog</div>
       </div>
 
-      <!-- INFO TAB -->
+      <!-- INFO TAB (also shows changelog) -->
       <div id="modalTabInfo">
         <p style="margin-bottom:20px" id="modalDesc"></p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:16px;margin-bottom:20px">
@@ -492,9 +522,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
           <div id="modalIssues"></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="bookmarkBtn" onclick="toggleBookmark()">🔖 Bookmark</button>
           <button class="btn btn-ghost btn-sm" onclick="shareSkill()">🔗 Share</button>
           <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="reportSkill()">⚑ Report</button>
         </div>
+      </div>
+
+      <!-- CHANGELOG TAB -->
+      <div id="modalTabChangelog" style="display:none">
+        <div id="changelogList"><div class="no-reviews">Loading…</div></div>
       </div>
 
       <!-- REVIEWS TAB -->
@@ -525,6 +561,49 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0}
   </div>
 </div>
 
+<!-- Auth Modal -->
+<div class="auth-modal" id="authModal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-box">
+    <div class="auth-header">
+      <div>
+        <div style="font-weight:800;font-size:1.1rem;color:var(--text)">🔒 ClawVault Account</div>
+        <p style="font-size:.85rem;margin-top:2px">Join the community. Track your skills.</p>
+      </div>
+      <button onclick="closeAuthModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Login</div>
+      <div class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Register</div>
+    </div>
+    <div class="auth-body">
+      <!-- Login -->
+      <div id="authLoginForm">
+        <div class="form-group"><label>Username or Email</label><input class="form-input" id="loginIdentifier" placeholder="username or email@example.com" type="text"></div>
+        <div class="form-group"><label>Password</label><input class="form-input" id="loginPassword" placeholder="••••••••" type="password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div id="loginErr" style="color:var(--red);font-size:.85rem;margin-bottom:12px;display:none"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="doLogin()">Login →</button>
+      </div>
+      <!-- Register -->
+      <div id="authRegisterForm" style="display:none">
+        <div class="form-group"><label>Username *</label><input class="form-input" id="regUsername" placeholder="your-username (3-30 chars)" type="text"></div>
+        <div class="form-group"><label>Email *</label><input class="form-input" id="regEmail" placeholder="you@example.com" type="email"></div>
+        <div class="form-group"><label>Password *</label><input class="form-input" id="regPassword" placeholder="At least 6 characters" type="password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+        <div class="form-group"><label>GitHub Username <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="form-input" id="regGithub" placeholder="your-github-username" type="text"></div>
+        <div id="registerErr" style="color:var(--red);font-size:.85rem;margin-bottom:12px;display:none"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="doRegister()">Create Account →</button>
+        <p style="font-size:.78rem;color:var(--muted);text-align:center;margin-top:12px">By registering you agree to use ClawVault responsibly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Page -->
+<div id="profilePage" style="display:none;padding-top:80px;min-height:100vh">
+  <div class="container" style="padding-top:32px;padding-bottom:80px">
+    <div class="profile-grid" id="profileContent"></div>
+  </div>
+</div>
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -533,20 +612,26 @@ let currentCat='all',currentSort='installs',allSkills=[],statusPoll=null,adminTo
 let currentModalSkillId=null, selectedRating=0;
 
 function showPage(p){
-  document.getElementById('mainSite').style.display=p==='main'?'':'none';
-  document.getElementById('submitPage').style.display=p==='submit'?'':'none';
-  document.getElementById('statusPage').style.display=p==='status'?'':'none';
-  document.getElementById('adminPage').style.display=p==='admin'?'':'none';
+  ['mainSite','submitPage','statusPage','adminPage','profilePage'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  const target={'main':'mainSite','submit':'submitPage','status':'statusPage','admin':'adminPage','profile':'profilePage'}[p];
+  if(target)document.getElementById(target).style.display='';
   if(adminRefreshTimer&&p!=='admin'){clearInterval(adminRefreshTimer);adminRefreshTimer=null;}
   if(statusPoll&&p!=='status'){clearInterval(statusPoll);statusPoll=null;}
+  window.scrollTo(0,0);
 }
 function goHome(){showPage('main');history.pushState(null,'','/');loadSkills();}
-function showSubmit(){showPage('submit');history.pushState(null,'','/submit');window.scrollTo(0,0);document.getElementById('submitError').style.display='none';const b=document.getElementById('submitBtn');b.disabled=false;b.textContent='Submit for Security Scan →';}
-function showStatus(id){showPage('status');history.pushState(null,'','/status/'+id);window.scrollTo(0,0);pollStatus(id);}
+function showSubmit(){showPage('submit');history.pushState(null,'','/submit');document.getElementById('submitError').style.display='none';const b=document.getElementById('submitBtn');b.disabled=false;b.textContent='Submit for Security Scan →';}
+function showStatus(id){showPage('status');history.pushState(null,'','/status/'+id);pollStatus(id);}
 function showAdmin(){
-  showPage('admin');history.pushState(null,'','/admin');window.scrollTo(0,0);
+  showPage('admin');history.pushState(null,'','/admin');
   if(adminToken){document.getElementById('adminLoginView').style.display='none';document.getElementById('adminDash').style.display='';loadAdminQueue();}
   else{document.getElementById('adminLoginView').style.display='';document.getElementById('adminDash').style.display='none';}
+}
+function showProfile(username){
+  showPage('profile');history.pushState(null,'','/user/'+username);
+  loadProfile(username);
 }
 window.addEventListener('popstate',routeByPath);
 function routeByPath(){
@@ -554,6 +639,7 @@ function routeByPath(){
   if(p==='/admin'){showAdmin();return;}
   if(p.startsWith('/status/')){showStatus(p.replace('/status/',''));return;}
   if(p==='/submit'){showSubmit();return;}
+  if(p.startsWith('/user/')){showProfile(p.replace('/user/',''));return;}
   if(p.startsWith('/skills/')){
     const name=p.replace('/skills/','');
     showPage('main');
@@ -663,7 +749,26 @@ function switchModalTab(tab, el){
   el.classList.add('active');
   document.getElementById('modalTabInfo').style.display=tab==='info'?'':'none';
   document.getElementById('modalTabReviews').style.display=tab==='reviews'?'':'none';
+  document.getElementById('modalTabChangelog').style.display=tab==='changelog'?'':'none';
   if(tab==='reviews'&&currentModalSkillId) loadReviews(currentModalSkillId);
+  if(tab==='changelog'&&currentModalSkillId) loadChangelog(currentModalSkillId);
+}
+
+async function loadChangelog(skillId){
+  document.getElementById('changelogList').innerHTML='<div class="no-reviews">Loading…</div>';
+  try{
+    const entries=await fetch(API+'/api/skills/'+skillId+'/changelog').then(r=>r.json());
+    if(!entries.length){document.getElementById('changelogList').innerHTML='<div class="no-reviews">No changelog entries yet.</div>';return;}
+    document.getElementById('changelogList').innerHTML=entries.map(e=>`
+      <div class="review-item">
+        <div class="review-item-header">
+          <span style="font-weight:700;color:var(--accent2);font-family:monospace">v${escHtml(e.version)}</span>
+          <span class="review-date">${(e.created_at||'').slice(0,10)}</span>
+        </div>
+        <div class="review-text" style="white-space:pre-wrap">${escHtml(e.changes)}</div>
+        ${e.author?`<div style="font-size:.75rem;color:var(--muted);margin-top:4px">by @${escHtml(e.author)}</div>`:''}
+      </div>`).join('');
+  }catch(e){document.getElementById('changelogList').innerHTML='<div class="no-reviews">Could not load changelog.</div>';}
 }
 
 function openSkillModal(jsonStr){
@@ -700,6 +805,14 @@ function openSkillModal(jsonStr){
   fetch(API+'/api/skills/'+s.id+'/reviews').then(r=>r.json()).then(reviews=>{
     document.getElementById('reviewCountBadge').textContent=reviews.length||0;
   }).catch(()=>{});
+  // Check bookmark status
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  if(tok){
+    fetch(API+'/api/bookmarks/check/'+s.id,{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json()).then(d=>{
+      const btn=document.getElementById('bookmarkBtn');
+      if(btn)btn.textContent=d.bookmarked?'🔖 Bookmarked':'🔖 Bookmark';
+    }).catch(()=>{});
+  }
 }
 function closeModal(e){
   if(e.target===document.getElementById('skillModal')){
@@ -767,6 +880,18 @@ async function submitReview(){
 }
 
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function toggleBookmark(){
+  if(!currentUser){openAuthModal('register');return;}
+  if(!currentModalSkillId)return;
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  const data=await fetch(API+'/api/bookmarks/'+currentModalSkillId,{method:'POST',headers:{Authorization:'Bearer '+tok}}).then(r=>r.json()).catch(()=>null);
+  if(data){
+    const btn=document.getElementById('bookmarkBtn');
+    if(btn)btn.textContent=data.bookmarked?'🔖 Bookmarked':'🔖 Bookmark';
+    showNotif(data.bookmarked?'Bookmarked! ✓':'Bookmark removed');
+  }
+}
 
 function shareSkill(){
   const url=window.location.href;
@@ -936,7 +1061,183 @@ async function adminDelete(id){if(!confirm('Delete this skill permanently?'))ret
 function copyCmd(el){navigator.clipboard.writeText(el.textContent.trim());showNotif('✓ Copied!');}
 function showNotif(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
 
-routeByPath();
+// ── Auth ──────────────────────────────────────────────────────────────────
+let currentUser=null;
+const USER_TOKEN_KEY='cv_user_token';
+
+function updateNavAuth(){
+  const area=document.getElementById('navAuthArea');
+  if(!area)return;
+  if(currentUser){
+    area.innerHTML=`<button class="avatar-ring" onclick="showProfile('${currentUser.username}')" title="My Profile">${currentUser.username[0].toUpperCase()}</button>`;
+  }else{
+    area.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="openAuthModal('login')">Login</button><button class="btn btn-primary btn-sm" onclick="openAuthModal('register')" style="margin-left:6px">Register</button>`;
+  }
+}
+
+async function initAuth(){
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  if(!tok)return updateNavAuth();
+  try{
+    const data=await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.ok?r.json():null);
+    if(data){currentUser={...data,token:tok};}
+  }catch(e){}
+  updateNavAuth();
+}
+
+function openAuthModal(tab='login'){
+  switchAuthTab(tab);
+  document.getElementById('authModal').classList.add('open');
+}
+function closeAuthModal(){document.getElementById('authModal').classList.remove('open');}
+function switchAuthTab(tab){
+  document.getElementById('authTabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('authTabRegister').classList.toggle('active',tab==='register');
+  document.getElementById('authLoginForm').style.display=tab==='login'?'':'none';
+  document.getElementById('authRegisterForm').style.display=tab==='register'?'':'none';
+  document.getElementById('loginErr').style.display='none';
+  document.getElementById('registerErr').style.display='none';
+}
+
+async function doLogin(){
+  const id=document.getElementById('loginIdentifier').value.trim();
+  const pw=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginErr');
+  errEl.style.display='none';
+  if(!id||!pw)return;
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:id,password:pw})});
+    const data=await res.json();
+    if(!res.ok){errEl.textContent=data.detail||'Login failed';errEl.style.display='';return;}
+    localStorage.setItem(USER_TOKEN_KEY,data.token);
+    currentUser=data;
+    closeAuthModal();
+    updateNavAuth();
+    showNotif('Welcome back, @'+data.username+' 👋');
+  }catch(e){errEl.textContent='Network error';errEl.style.display='';}
+}
+
+async function doRegister(){
+  const username=document.getElementById('regUsername').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const password=document.getElementById('regPassword').value;
+  const github=document.getElementById('regGithub').value.trim();
+  const errEl=document.getElementById('registerErr');
+  errEl.style.display='none';
+  if(!username||!email||!password)return;
+  try{
+    const res=await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,email,password,github})});
+    const data=await res.json();
+    if(!res.ok){errEl.textContent=data.detail||'Registration failed';errEl.style.display='';return;}
+    localStorage.setItem(USER_TOKEN_KEY,data.token);
+    currentUser=data;
+    closeAuthModal();
+    updateNavAuth();
+    showNotif('Welcome to ClawVault, @'+data.username+' 🎉');
+  }catch(e){errEl.textContent='Network error';errEl.style.display='';}
+}
+
+function logout(){
+  currentUser=null;
+  localStorage.removeItem(USER_TOKEN_KEY);
+  updateNavAuth();
+  showNotif('Logged out');
+}
+
+// ── Profile Page ─────────────────────────────────────────────────────────
+async function loadProfile(username){
+  const el=document.getElementById('profileContent');
+  el.innerHTML='<div style="color:var(--muted);padding:40px">Loading…</div>';
+  try{
+    const data=await fetch(API+'/api/users/'+encodeURIComponent(username)).then(r=>r.json());
+    const isMe=currentUser&&currentUser.username===data.username;
+    const joinYear=(data.created_at||'2026').slice(0,4);
+    const verifiedSkills=data.skills.filter(s=>s.status==='verified').length;
+    el.innerHTML=`
+      <div>
+        <div class="profile-card">
+          <div class="profile-avatar">${data.username[0].toUpperCase()}</div>
+          <div class="profile-username">@${escHtml(data.username)}</div>
+          ${data.github?`<div style="text-align:center;margin-top:6px"><a href="https://github.com/${escHtml(data.github)}" target="_blank" style="color:var(--accent2);font-size:.85rem">⌥ github.com/${escHtml(data.github)}</a></div>`:''}
+          ${data.bio?`<p style="text-align:center;font-size:.88rem;margin-top:12px">${escHtml(data.bio)}</p>`:''}
+          <div class="profile-stats">
+            <div class="profile-stat"><div class="profile-stat-n" style="color:var(--green)">${verifiedSkills}</div><div class="profile-stat-l">Skills</div></div>
+            <div class="profile-stat"><div class="profile-stat-n">${data.skills.length}</div><div class="profile-stat-l">Total</div></div>
+            <div class="profile-stat"><div class="profile-stat-n" style="color:var(--muted)">${joinYear}</div><div class="profile-stat-l">Joined</div></div>
+          </div>
+          ${isMe?`<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:4px" onclick="showEditProfile()">Edit Profile</button><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;color:var(--muted)" onclick="showMyBookmarks()">🔖 My Bookmarks</button><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;color:var(--red)" onclick="logout();goHome()">Logout</button>`:''}
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text);margin-bottom:16px">Skills by @${escHtml(data.username)}</h3>
+        ${data.skills.length?data.skills.map(s=>`
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:.2s" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})' onmouseover="this.style.borderColor='rgba(124,58,237,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:700;color:var(--text)">@clawvault/${escHtml(s.name)}</div>
+                <div style="font-size:.83rem;color:var(--muted);margin-top:2px">${escHtml(s.description||'')}</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+                <span class="badge-small ${s.status==='verified'?'badge-verified':s.status==='failed'?'badge-score-red':'badge-score-yellow'}">${s.status}</span>
+                ${shieldBadge(s.score)}
+              </div>
+            </div>
+          </div>`).join(''):'<p style="color:var(--muted)">No skills submitted yet.</p>'}
+        ${isMe?'<div id="editProfileSection" style="display:none;margin-top:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px"><h4 style="color:var(--text);margin-bottom:16px">Edit Profile</h4><div class="form-group"><label>Bio</label><textarea class="form-input" id="editBio" rows="3" maxlength="300" placeholder="Tell the community about yourself…"></textarea></div><div class="form-group"><label>GitHub Username</label><input class="form-input" id="editGithub" placeholder="your-github-username" type="text"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'editProfileSection\').style.display=\'none\'">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveProfile()">Save</button></div></div><div id="bookmarksSection" style="display:none;margin-top:24px"><h4 style="color:var(--text);margin-bottom:16px">🔖 My Bookmarks</h4><div id="bookmarksList"></div></div>':''}
+      </div>`;
+    if(isMe){
+      document.getElementById('editBio').value=currentUser?.bio||'';
+      document.getElementById('editGithub').value=currentUser?.github||'';
+    }
+  }catch(e){el.innerHTML='<div style="color:var(--red)">User not found.</div>';}
+}
+
+function showEditProfile(){
+  const el=document.getElementById('editProfileSection');
+  if(el)el.style.display=el.style.display==='none'?'':'none';
+}
+async function saveProfile(){
+  if(!currentUser)return;
+  const bio=document.getElementById('editBio').value;
+  const github=document.getElementById('editGithub').value;
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  await fetch(API+'/api/auth/profile',{method:'PATCH',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({bio,github})});
+  currentUser.bio=bio;currentUser.github=github;
+  showNotif('Profile updated ✓');
+  document.getElementById('editProfileSection').style.display='none';
+  loadProfile(currentUser.username);
+}
+
+async function showMyBookmarks(){
+  const sec=document.getElementById('bookmarksSection');
+  const list=document.getElementById('bookmarksList');
+  if(!sec||!list)return;
+  sec.style.display=sec.style.display==='none'?'':'none';
+  if(sec.style.display==='none')return;
+  list.innerHTML='<div style="color:var(--muted)">Loading…</div>';
+  const tok=localStorage.getItem(USER_TOKEN_KEY);
+  const skills=await fetch(API+'/api/bookmarks',{headers:{Authorization:'Bearer '+tok}}).then(r=>r.json()).catch(()=>[]);
+  if(!skills.length){list.innerHTML='<p style="color:var(--muted)">No bookmarks yet. Bookmark skills by clicking the ★ in the modal.</p>';return;}
+  list.innerHTML=skills.map(s=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer" onclick='openSkillModal(${JSON.stringify(JSON.stringify(s))})'><div style="font-weight:700;color:var(--text)">@clawvault/${escHtml(s.name)}</div><div style="font-size:.82rem;color:var(--muted)">${escHtml(s.description||'')}</div></div>`).join('');
+}
+
+// ── Keyboard Shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  const modal=document.getElementById('skillModal');
+  const isOpen=modal.classList.contains('open');
+  if(e.key==='Escape'){
+    if(isOpen){modal.classList.remove('open');if(window.location.pathname.startsWith('/skills/'))history.replaceState(null,'','/');}
+    return;
+  }
+  // '/' to focus search (only if not in an input)
+  if(e.key==='/'&&!isOpen&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
+    e.preventDefault();
+    const inp=document.getElementById('searchInput');
+    if(inp){inp.focus();inp.select();}
+  }
+});
+
+initAuth().then(()=>routeByPath());
 </script>
 </body>
 </html>
